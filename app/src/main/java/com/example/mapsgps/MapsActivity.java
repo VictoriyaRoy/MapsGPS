@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
@@ -42,6 +41,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int DEFAULT_UPDATE_INTERVAL = 30;
     private static final int PERMISSIONS_FINE_LOCATION = 99;
 
+    private static final int CAMERA_ZOOM = 17;
+
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
 
@@ -49,8 +50,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     LocationCallback locationCallBack;
     FusedLocationProviderClient fusedLocationProviderClient;
 
-    boolean requestingLocationUpdates = false;
-    boolean isActiveLocation;
+    boolean requestingLocationUpdates = true;
 
     Marker current_marker;
     LatLng current_position;
@@ -73,8 +73,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 updatePosition(locationResult.getLastLocation());
-                if (!isActiveLocation){
-                    setActive();
+                if(!current_marker.isVisible()) {
+                    current_marker.setVisible(true);
                     updateCamera();
                 }
             }
@@ -88,15 +88,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         binding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!isEnabledGPS()){
+                if(isEnabledGPS()){
+                    updateCamera();
+                }
+                else {
                     buildAlertMessageNoGps();
+                    current_marker.setVisible(false);
                 }
-                if (!requestingLocationUpdates) {
-                    requestingLocationUpdates = true;
-                    startLocationUpdates();
-                }
-                updateCamera();
-                }
+            }
         });
         updateGps();
 
@@ -149,9 +148,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
                 @Override
                 public void onSuccess(Location location) {
-                    updatePosition(location);
-                    current_marker.setVisible(true);
-                    updateCamera();
+                    if (location != null){
+                        updatePosition(location);
+                        current_marker.setVisible(true);
+                        updateCamera();
+                    }
                 }
             });
         }
@@ -163,24 +164,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void updatePosition(Location location) {
-        if (location != null) {
-            double new_lat = location.getLatitude();
-            double new_lon = location.getLongitude();
+        double new_lat = location.getLatitude();
+        double new_lon = location.getLongitude();
 
-            if (current_position.latitude != new_lat | current_position.longitude != new_lon) {
-                current_position = new LatLng(new_lat, new_lon);
-                current_marker.setPosition(current_position);
-            }
+        if (current_position.latitude != new_lat | current_position.longitude != new_lon) {
+            current_position = new LatLng(new_lat, new_lon);
+            current_marker.setPosition(current_position);
         }
     }
 
     private void updateCamera(){
-        float cameraZoom = mMap.getCameraPosition().zoom;
-        if (cameraZoom > 18) {
-            cameraZoom = 18;
-        }
-
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(CameraPosition.fromLatLngZoom(current_position, cameraZoom));
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(CameraPosition.fromLatLngZoom(current_position, CAMERA_ZOOM));
         mMap.animateCamera(cameraUpdate, 1000, null);
     }
 
@@ -204,22 +198,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        setInactive();
                         dialog.cancel();
                     }
                 });
         final AlertDialog alert = builder.create();
         alert.show();
-    }
-
-    private void setActive(){
-        isActiveLocation = true;
-        current_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.active_loc));
-    }
-
-    private void setInactive(){
-        isActiveLocation = false;
-        current_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.inactive_loc));
     }
 
     /**
@@ -235,8 +218,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         current_position = new LatLng(0,0);
         current_marker = mMap.addMarker(new MarkerOptions().position(current_position).visible(false).title("You're here"));
-        setInactive();
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(18));
+        current_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.active_loc));
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(CAMERA_ZOOM));
 
     }
 }
