@@ -34,6 +34,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -45,6 +47,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
+    private FloatingActionButton search_fab, gps_fab;
 
     LocationRequest locationRequest;
     LocationCallback locationCallBack;
@@ -68,35 +71,45 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationRequest.setFastestInterval(1000 * FAST_UPDATE_INTERVAL);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        locationCallBack = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                super.onLocationResult(locationResult);
-                updatePosition(locationResult.getLastLocation());
-                if(!current_marker.isVisible()) {
-                    current_marker.setVisible(true);
-                    updateCamera();
-                }
-            }
-        };
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        binding.fab.setOnClickListener(new View.OnClickListener() {
+        search_fab = findViewById(R.id.search_fab);
+        search_fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "There will be device searching", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+
+        gps_fab = findViewById(R.id.gps_fab);
+        gps_fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(isEnabledGPS()){
                     updateCamera();
                 }
                 else {
+                    disconnectGPS();
                     buildAlertMessageNoGps();
-                    current_marker.setVisible(false);
                 }
             }
         });
+
+        locationCallBack = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+                updatePosition(locationResult.getLastLocation());
+                if(!current_marker.isVisible()) {
+                    connectGPS();
+                }
+            }
+        };
+
         updateGps();
 
     }
@@ -150,8 +163,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void onSuccess(Location location) {
                     if (location != null){
                         updatePosition(location);
-                        current_marker.setVisible(true);
-                        updateCamera();
+                        connectGPS();
                     }
                 }
             });
@@ -180,11 +192,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private boolean isEnabledGPS(){
         final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+        return manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
 
-        if (manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
-            return true;
-        }
-        return false;
+    private void connectGPS(){
+        current_marker.setVisible(true);
+        gps_fab.setImageResource(R.drawable.gps_fixed);
+        updateCamera();
+    }
+
+    private void disconnectGPS(){
+        current_marker.setVisible(false);
+        gps_fab.setImageResource(R.drawable.gps_not_fixed);
     }
 
     private void buildAlertMessageNoGps() {
@@ -217,9 +236,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
 
         current_position = new LatLng(0,0);
-        current_marker = mMap.addMarker(new MarkerOptions().position(current_position).visible(false).title("You're here"));
+        current_marker = mMap.addMarker(new MarkerOptions().position(current_position).visible(false));
         current_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.active_loc));
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(CAMERA_ZOOM));
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
 
     }
 }
