@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "974834303071",
+    "project_id": "mapsgps-fd863",
+    "storage_bucket": "mapsgps-fd863.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:974834303071:android:65f1e23afbf38399225bea",
+        "android_client_info": {
+          "package_name": "com.example.mapsgps"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "974834303071-je0sstcdqci4au8l2d74v4od8sp5l60k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mapsgps",
+            "certificate_hash": "06cce99a2dc2b1214f2dd5406d40067032ed98d2"
+          }
+        },
+        {
+          "client_id": "974834303071-rd2k0jpfdefiel2cppg0jqf8hgpd2gbq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvMbHYJ1tZvfO9i1kkFdL4OG_5F9mEGcM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "974834303071-rd2k0jpfdefiel2cppg0jqf8hgpd2gbq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
