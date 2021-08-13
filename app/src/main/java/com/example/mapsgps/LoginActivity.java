@@ -21,7 +21,6 @@ import com.google.firebase.auth.FirebaseUser;
 public class LoginActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
 
     private EditText email_et, password_et;
     private Button login_btn;
@@ -33,19 +32,6 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         mAuth = FirebaseAuth.getInstance();
-
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null){
-                    //User is signed in
-
-                } else{
-                    //User is signed out
-                }
-            }
-        };
 
         email_et = findViewById(R.id.email_et);
         password_et = findViewById(R.id.password_et);
@@ -79,5 +65,21 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void updateUI(FirebaseUser current_user){
+        if (current_user != null) {
+            Intent intent = new Intent(LoginActivity.this, TestActivity.class);
+            intent.putExtra("email", current_user.getEmail());
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI(currentUser);
     }
 }
