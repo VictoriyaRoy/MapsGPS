@@ -10,10 +10,17 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -222,6 +229,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
         final AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_maps, menu);
+        MenuItem signOutItem = menu.getItem(1);
+        SpannableString spannable = new SpannableString("Sign out");
+        spannable.setSpan(new ForegroundColorSpan(Color.RED), 0, spannable.length(), 0);
+        signOutItem.setTitle(spannable);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId())
+        {
+            case R.id.add_device:
+                return true;
+            case R.id.sign_out:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     /**
