@@ -60,6 +60,9 @@ public class LoginActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     Toast.makeText(LoginActivity.this, "Authorization is successful", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(LoginActivity.this, MapsActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
                 } else{
                     Toast.makeText(LoginActivity.this, "Authorization is failed", Toast.LENGTH_SHORT).show();
                 }
@@ -67,19 +70,4 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void updateUI(FirebaseUser current_user){
-        if (current_user != null) {
-            Intent intent = new Intent(LoginActivity.this, TestActivity.class);
-            intent.putExtra("email", current_user.getEmail());
-            startActivity(intent);
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        updateUI(currentUser);
-    }
 }

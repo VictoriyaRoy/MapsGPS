@@ -9,8 +9,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MapsGps">
-        <activity android:name=".TestActivity"></activity>
         <activity android:name=".SignUpActivity" />
+        <activity android:name=".LoginActivity"/>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -22,8 +22,7 @@
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps"
-            android:theme="@style/Theme.MapsGps.NoActionBar" />
-        <activity android:name=".LoginActivity">
+            android:theme="@style/Theme.MapsGps.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

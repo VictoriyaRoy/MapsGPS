@@ -43,6 +43,8 @@ import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -65,6 +67,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     Marker current_marker;
     LatLng current_position;
 
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +76,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.toolbar);
+
+        mAuth = FirebaseAuth.getInstance();
 
         locationRequest = new LocationRequest();
         locationRequest.setInterval(1000 * DEFAULT_UPDATE_INTERVAL);
@@ -250,6 +256,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.add_device:
                 return true;
             case R.id.sign_out:
+                mAuth.signOut();
+                signOut();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -272,5 +280,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         current_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.active_loc));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null){
+            signOut();
+        }
+    }
+
+    private void signOut(){
+        Intent intent = new Intent(MapsActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 }
