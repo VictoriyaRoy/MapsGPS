@@ -5,35 +5,32 @@
 const int RXPin = 9, TXPin = 8;
 const int BaudRate = 9600;
 const int timeZone = 2;
+const int printDelay = 100;
+const int transmissionDelay = 100;
 
 TinyGPSPlus gps;
 
 // The serial connection to the GPS device
 SoftwareSerial GPSModule(RXPin, TXPin);
 
-struct GPSInfoStruct {
+struct GPSDataStruct {
     double latitude;
     double longitude;
-    double altitude;
     int year;
     int month;
     int day;
     int hour;
     int minute;
     int second;
-    double speedMPS;
-    double speedKMPH;
-} GPSInfo;
+} GPSData;
 
-bool isGPSInfoAvailable();
 void getLocation();
-void getDate();
-void getTime();
-void getSpeed();
 void printLocation();
+void getDate();
 void printDate();
+void getTime();
 void printTime();
-void printSpeed();
+void transmit_data();
 
 void setup(){
     Serial.begin(BaudRate);
@@ -41,82 +38,88 @@ void setup(){
 }
 
 void loop(){
-    while (GPSModule.available() > 0){
+    // Serial.print("Works!");
+    // Serial.write("Here");
+    while (GPSModule.available() > 0) {
         byte gpsData = GPSModule.read();
         gps.encode(gpsData);
-        if (gps.location.isValid() || gps.date.isValid() || gps.time.isValid() ||
-             gps.speed.isValid() || gps.altitude.isValid()) {
-            printLocation();
+        if (gps.location.isValid() && gps.date.isValid() && gps.time.isValid()) {
             getLocation();
             getDate();
             getTime();
-            getSpeed();
-        } else {
+            transmit_data();
+        } 
+        else {
             Serial.write(gpsData); // print NMEA sentences
         }
     }
 }
 
 void getLocation() {
-    GPSInfo.latitude =  gps.location.lat();
-    GPSInfo.longitude = gps.location.lng();
-    GPSInfo.altitude = gps.altitude.meters();
+    GPSData.latitude =  gps.location.lat();
+    GPSData.longitude = gps.location.lng();
 }
 
 void printLocation() {
     Serial.print("Latitude= ");
-    Serial.println(GPSInfo.latitude, 6);
+    Serial.println(GPSData.latitude, 6);
 
     Serial.print("Longitude= ");
-    Serial.println(GPSInfo.longitude, 6);
-
-    Serial.print("Altitude in meters = ");
-    Serial.println(GPSInfo.altitude, 6);
+    Serial.println(GPSData.longitude, 6);
+    delay(printDelay);
 }
 
 void getDate() {
-    GPSInfo.year = gps.date.year();
-    GPSInfo.month = gps.date.month();
-    GPSInfo.day = gps.date.day();
+    GPSData.year = gps.date.year();
+    GPSData.month = gps.date.month();
+    GPSData.day = gps.date.day();
 }
 
 void printDate() {
     Serial.print("Year = ");
-    Serial.println(GPSInfo.year);
+    Serial.println(GPSData.year);
 
     Serial.print("Month = ");
-    Serial.println(GPSInfo.month);
+    Serial.println(GPSData.month);
 
     Serial.print("Day = ");
-    Serial.println(GPSInfo.day);
+    Serial.println(GPSData.day);
+    delay(printDelay);
 }
 
 void getTime() {
-    GPSInfo.hour = gps.time.hour() + timeZone;
-    GPSInfo.minute = gps.time.minute();
-    GPSInfo.second= gps.time.second();
+    GPSData.hour = gps.time.hour() + timeZone;
+    GPSData.minute = gps.time.minute();
+    GPSData.second= gps.time.second();
 }
 
 void printTime() {
     Serial.print("Hour = ");
-    Serial.println(GPSInfo.hour);
+    Serial.println(GPSData.hour);
 
     Serial.print("Minute = ");
-    Serial.println(GPSInfo.minute);
+    Serial.println(GPSData.minute);
 
     Serial.print("Second = ");
-    Serial.println(GPSInfo.second);
+    Serial.println(GPSData.second);
+    delay(printDelay);
 }
 
-void getSpeed() {
-    GPSInfo.speedMPS = gps.speed.mps();
-    GPSInfo.speedKMPH = gps.speed.kmph();
-}
-
-void printSpeed() {
-    Serial.print("Speed in m/s = ");
-    Serial.println(GPSInfo.speedMPS);
-
-    Serial.print("Speed in km/h = ");
-    Serial.println(GPSInfo.speedKMPH);
+void transmit_data() {
+    Serial.print(GPSData.latitude, 6);
+    Serial.print(" ");
+    Serial.print(GPSData.longitude, 6);
+    Serial.print(" ");
+    Serial.print(GPSData.year);
+    Serial.print(" ");
+    Serial.print(GPSData.month);
+    Serial.print(" ");
+    Serial.print(GPSData.day);
+    Serial.print(" ");
+    Serial.print(GPSData.hour);
+    Serial.print(" ");
+    Serial.print(GPSData.minute);
+    Serial.print(" ");
+    Serial.print(GPSData.second);
+    Serial.println();
 }
