@@ -6,20 +6,23 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 
 public class SignUpActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
 
-    private EditText email_et, password_et;
+    private TextInputLayout emailInput, passwordInput;
     private Button sign_up_btn;
     private TextView login_tv;
 
@@ -30,8 +33,8 @@ public class SignUpActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-        email_et = findViewById(R.id.email_et);
-        password_et = findViewById(R.id.password_et);
+        emailInput = findViewById(R.id.email);
+        passwordInput = findViewById(R.id.password);
 
         login_tv = findViewById(R.id.login);
         login_tv.setOnClickListener(new View.OnClickListener() {
@@ -45,7 +48,9 @@ public class SignUpActivity extends AppCompatActivity {
         sign_up_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                signUpWithEmail(email_et.getText().toString(), password_et.getText().toString());
+                if (Credentials.checkEmailEmpty(emailInput) & Credentials.validatePassword(passwordInput)){
+                    signUpWithEmail(Credentials.getData(emailInput).trim(), Credentials.getData(passwordInput));
+                }
             }
         });
     }
@@ -56,9 +61,22 @@ public class SignUpActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     Toast.makeText(SignUpActivity.this, "Registration is successful", Toast.LENGTH_SHORT).show();
+                    mAuth.signOut();
                     finish();
                 } else{
-                    Toast.makeText(SignUpActivity.this, "Registration is failed", Toast.LENGTH_SHORT).show();
+                    try {
+                        throw task.getException();
+                    } catch(FirebaseAuthInvalidCredentialsException e) {
+                        emailInput.setError("Invalid email");
+                        emailInput.setErrorEnabled(true);
+                    } catch(FirebaseAuthUserCollisionException e) {
+                        emailInput.setError("User with this email already exists");
+                        emailInput.setErrorEnabled(true);
+                    } catch (FirebaseNetworkException e) {
+                        Toast.makeText(SignUpActivity.this, "Check your internet connection and try again", Toast.LENGTH_SHORT).show();
+                    } catch(Exception e) {
+                        Toast.makeText(SignUpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });
