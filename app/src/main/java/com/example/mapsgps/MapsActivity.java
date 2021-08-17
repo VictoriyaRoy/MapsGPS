@@ -43,6 +43,11 @@ import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -64,6 +69,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     Marker current_marker;
     LatLng current_position;
+
+    GpsLocation deviceLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +125,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         };
 
         updateGps();
+        updateDeviceLocation();
+
 
     }
 
@@ -256,6 +265,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    private void updateDeviceLocation(){
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://mapsgps-fd863-default-rtdb.europe-west1.firebasedatabase.app");
+        DatabaseReference myRef = database.getReference("Devices");
+
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                DataSnapshot device1 = snapshot.child("test_device");
+                deviceLocation = device1.getValue(GpsLocation.class);
+                LatLng deviceLatLng = new LatLng(deviceLocation.latitude, deviceLocation.longitude);
+                mMap.addMarker(new MarkerOptions().position(deviceLatLng));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+        GpsLocation newLocation = new GpsLocation(16, 21, 0.0, 0.0, 31, 8, 55, 2021);
+        myRef.child("test_device").setValue(newLocation);
+    }
+
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -271,6 +304,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         current_marker = mMap.addMarker(new MarkerOptions().position(current_position).visible(false));
         current_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.active_loc));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
+
+
 
     }
 }
