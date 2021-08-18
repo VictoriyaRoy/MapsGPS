@@ -31,10 +31,10 @@ public class GpsConnection {
     boolean requestingLocationUpdates = true;
 
     FloatingActionButton gps_fab;
-    UserLocation user;
+    UserTracker user;
     Context context;
 
-    public GpsConnection(FloatingActionButton gps_fab, UserLocation user, Context context) {
+    public GpsConnection(FloatingActionButton gps_fab, UserTracker user, Context context) {
        gps_fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
