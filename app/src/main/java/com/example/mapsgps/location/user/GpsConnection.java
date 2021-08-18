@@ -1,4 +1,4 @@
-package com.example.mapsgps.location;
+package com.example.mapsgps.location.user;
 
 import android.Manifest;
 import android.content.Context;
@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 
 import com.example.mapsgps.R;
+import com.example.mapsgps.location.Camera;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -39,7 +40,7 @@ public class GpsConnection {
             @Override
             public void onClick(View view) {
                 if(isEnabledGPS()){
-                    Camera.updateCamera(user.position);
+                    Camera.updateCamera(user.getPosition());
                 }
                 else {
                     disconnectGPS();
@@ -72,13 +73,13 @@ public class GpsConnection {
     }
 
     private void connectGPS(){
-        user.marker.setVisible(true);
+        user.getMarker().setVisible(true);
         gps_fab.setImageResource(R.drawable.gps_fixed);
-        Camera.updateCamera(user.position);
+        Camera.updateCamera(user.getPosition());
     }
 
     private void disconnectGPS(){
-        user.marker.setVisible(false);
+        user.getMarker().setVisible(false);
         gps_fab.setImageResource(R.drawable.gps_not_fixed);
     }
 
@@ -103,8 +104,8 @@ public class GpsConnection {
 
     public void successUpdate(Location location) {
         if (location != null){
-            user.updatePosition(new LatLng(location.getLatitude(), location.getLongitude()));
-            if(!user.marker.isVisible()) {
+            user.setPosition(new LatLng(location.getLatitude(), location.getLongitude()));
+            if(!user.getMarker().isVisible()) {
                 connectGPS();
             }
         }

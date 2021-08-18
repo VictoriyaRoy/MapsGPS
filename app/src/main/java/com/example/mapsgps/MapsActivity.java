@@ -21,22 +21,21 @@ import androidx.core.app.ActivityCompat;
 
 import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.example.mapsgps.location.Camera;
-import com.example.mapsgps.location.GpsConnection;
-import com.example.mapsgps.location.UserTracker;
+import com.example.mapsgps.location.device.DeviceDatabase;
+import com.example.mapsgps.location.device.DeviceTracker;
+import com.example.mapsgps.location.user.GpsConnection;
+import com.example.mapsgps.location.user.UserTracker;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+
+import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -47,11 +46,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private FloatingActionButton search_fab, gps_fab;
 
-    UserTracker user;
+    UserTracker userTracker;
     GpsConnection gpsChecker;
 
-
-    GpsLocation deviceLocation;
+    DeviceDatabase deviceDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,10 +58,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(binding.getRoot());
         startInit();
 
-        user = new UserTracker(new LatLng(0,0));
-        gpsChecker = new GpsConnection(gps_fab, user, this);
+        userTracker = new UserTracker();
+        gpsChecker = new GpsConnection(gps_fab, userTracker, this);
+
         updateGps();
-        updateDeviceLocation();
 
     }
 
@@ -156,30 +154,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void updateDeviceLocation(){
-        FirebaseDatabase database = FirebaseDatabase.getInstance("https://mapsgps-fd863-default-rtdb.europe-west1.firebasedatabase.app");
-        DatabaseReference myRef = database.getReference("Devices");
-
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                DataSnapshot device1 = snapshot.child("test_device");
-                deviceLocation = device1.getValue(GpsLocation.class);
-                LatLng deviceLatLng = new LatLng(deviceLocation.latitude, deviceLocation.longitude);
-                mMap.addMarker(new MarkerOptions().position(deviceLatLng));
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-
-        GpsLocation newLocation = new GpsLocation(16, 21, 0.0, 0.0, 31, 8, 55, 2021);
-        myRef.child("test_device").setValue(newLocation);
-    }
-
-
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -190,7 +164,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        user.setMarker(mMap.addMarker(new MarkerOptions().position(user.getPosition())));
+        userTracker.addMarker(mMap);
+        deviceDatabase = new DeviceDatabase("test_id", mMap, this);
+
         Camera.mMap = mMap;
         Camera.start();
     }
