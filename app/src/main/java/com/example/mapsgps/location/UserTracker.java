@@ -5,9 +5,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
-public class UserLocation extends MyLocation{
+public class UserTracker extends LocationTracker {
 
-    public UserLocation(LatLng position) {
+    public UserTracker(LatLng position) {
         super(position);
     }
 

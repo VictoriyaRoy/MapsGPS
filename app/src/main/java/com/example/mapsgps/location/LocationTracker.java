@@ -6,11 +6,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MyLocation {
+public class LocationTracker {
     protected Marker marker;
     protected LatLng position;
 
-    public MyLocation(LatLng position) {
+    public LocationTracker(LatLng position) {
         this.position = position;
     }
 

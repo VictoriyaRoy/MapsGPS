@@ -22,7 +22,7 @@ import androidx.core.app.ActivityCompat;
 import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.example.mapsgps.location.Camera;
 import com.example.mapsgps.location.GpsConnection;
-import com.example.mapsgps.location.UserLocation;
+import com.example.mapsgps.location.UserTracker;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -47,7 +47,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private FloatingActionButton search_fab, gps_fab;
 
-    UserLocation user;
+    UserTracker user;
     GpsConnection gpsChecker;
 
 
@@ -60,7 +60,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(binding.getRoot());
         startInit();
 
-        user = new UserLocation(new LatLng(0,0));
+        user = new UserTracker(new LatLng(0,0));
         gpsChecker = new GpsConnection(gps_fab, user, this);
         updateGps();
         updateDeviceLocation();
