@@ -5,6 +5,8 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -22,6 +24,7 @@ import androidx.core.app.ActivityCompat;
 import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.example.mapsgps.location.Camera;
 import com.example.mapsgps.location.device.DeviceDatabase;
+import com.example.mapsgps.location.device.DeviceSearch;
 import com.example.mapsgps.location.device.DeviceTracker;
 import com.example.mapsgps.location.user.GpsConnection;
 import com.example.mapsgps.location.user.UserTracker;
@@ -50,6 +53,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     GpsConnection gpsChecker;
 
     DeviceDatabase deviceDatabase;
+    DeviceSearch deviceSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +64,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         userTracker = new UserTracker();
         gpsChecker = new GpsConnection(gps_fab, userTracker, this);
+        deviceDatabase = new DeviceDatabase("test_id", this);
+        deviceSearch = new DeviceSearch(search_fab, deviceDatabase, this);
 
         updateGps();
 
@@ -74,13 +80,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         gps_fab = findViewById(R.id.gps_fab);
         search_fab = findViewById(R.id.search_fab);
-        search_fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "There will be device searching", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
     }
 
     public void updateGps() {
@@ -165,7 +164,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         userTracker.addMarker(mMap);
-        deviceDatabase = new DeviceDatabase("test_id", mMap, this);
+        deviceDatabase.setGoogleMap(mMap);
 
         Camera.mMap = mMap;
         Camera.start();
