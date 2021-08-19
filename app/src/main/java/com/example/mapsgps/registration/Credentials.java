@@ -1,4 +1,4 @@
-package com.example.mapsgps;
+package com.example.mapsgps.registration;
 
 import com.google.android.material.textfield.TextInputLayout;
 
