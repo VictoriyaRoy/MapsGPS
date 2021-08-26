@@ -151,6 +151,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             case R.id.sign_out:
                 mAuth.signOut();
+                FirebaseUser user = mAuth.getCurrentUser();
                 signOut();
                 return true;
             default:

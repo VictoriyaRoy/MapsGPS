@@ -18,6 +18,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseUser;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -61,9 +62,10 @@ public class SignUpActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
-                    Toast.makeText(SignUpActivity.this, "Registration is successful", Toast.LENGTH_SHORT).show();
-                    mAuth.signOut();
-                    finish();
+                    verifyEmail();
+//                    Toast.makeText(SignUpActivity.this, "Registration is successful", Toast.LENGTH_SHORT).show();
+//                    mAuth.signOut();
+//                    finish();
                 } else{
                     try {
                         throw task.getException();
@@ -71,6 +73,7 @@ public class SignUpActivity extends AppCompatActivity {
                         emailInput.setError("Invalid email");
                         emailInput.setErrorEnabled(true);
                     } catch(FirebaseAuthUserCollisionException e) {
+                        //TODO: If email is not verified you can sign up again
                         emailInput.setError("User with this email already exists");
                         emailInput.setErrorEnabled(true);
                     } catch (FirebaseNetworkException e) {
@@ -81,5 +84,21 @@ public class SignUpActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void verifyEmail() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        user.sendEmailVerification().addOnCompleteListener(this, new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()){
+                    Toast.makeText(SignUpActivity.this, "Verification email sent to " + user.getEmail(), Toast.LENGTH_SHORT).show();
+                } else{
+                    Toast.makeText(SignUpActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        mAuth.signOut();
+        finish();
     }
 }

@@ -8,10 +8,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Users/User/Desktop/Java/MapsGps/app/src/main/res/layout/activity_sign_up.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/User/Desktop/Java/MapsGps/app/src/main/res/layout/activity_database.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/User/Desktop/Java/MapsGps/app/src/main/res/layout/activity_login.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/User/Desktop/Java/MapsGps/app/src/main/res/layout/activity_maps.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/User/Desktop/Java/MapsGps/app/src/main/res/layout/activity_second.xml" value="0.24010416666666667" />
+        <entry key="..\:/Users/User/Desktop/Java/MapsGps/app/src/main/res/layout/activity_sign_up.xml" value="0.25416666666666665" />
       </map>
     </option>
   </component>
