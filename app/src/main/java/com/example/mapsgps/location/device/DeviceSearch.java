@@ -15,20 +15,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.List;
 
 public class DeviceSearch {
-    private FloatingActionButton search_fab;
     private DeviceDatabase deviceDatabase;
     private Context context;
 
-    public DeviceSearch(FloatingActionButton search_fab, DeviceDatabase database, Context context) {
+    public DeviceSearch(DeviceDatabase database, Context context) {
         this.deviceDatabase = database;
         this.context = context;
-        search_fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                searchDevices();
-            }
-        });
-        this.search_fab = search_fab;
     }
 
     public boolean isOnline() {
@@ -36,7 +28,7 @@ public class DeviceSearch {
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
     }
 
-    private void searchDevices() {
+    public void searchDevices() {
         switch (deviceDatabase.getDeviceStatus()) {
             case DeviceDatabase.NOT_CONNECT:
                 notConnect();

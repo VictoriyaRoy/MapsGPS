@@ -65,7 +65,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         userTracker = new UserTracker();
         gpsChecker = new GpsConnection(gps_fab, userTracker, this);
         deviceDatabase = new DeviceDatabase("test_id", this);
-        deviceSearch = new DeviceSearch(search_fab, deviceDatabase, this);
+        deviceSearch = new DeviceSearch(deviceDatabase, this);
+
+        search_fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                deviceSearch.searchDevices();
+            }
+        });
 
         updateGps();
 
