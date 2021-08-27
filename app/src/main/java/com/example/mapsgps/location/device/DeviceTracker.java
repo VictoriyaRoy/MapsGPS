@@ -2,6 +2,7 @@ package com.example.mapsgps.location.device;
 
 import androidx.annotation.NonNull;
 
+import com.example.mapsgps.location.Camera;
 import com.example.mapsgps.location.LocationTracker;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DataSnapshot;
@@ -20,6 +21,10 @@ public class DeviceTracker extends LocationTracker {
 
     public DeviceTracker() {
         super();
+    }
+
+    public String getId() {
+        return id;
     }
 
     public DeviceTracker(String id) {
@@ -41,5 +46,9 @@ public class DeviceTracker extends LocationTracker {
         });
 
 
+    }
+
+    public void show(){
+        Camera.updateCamera(getPosition());
     }
 }

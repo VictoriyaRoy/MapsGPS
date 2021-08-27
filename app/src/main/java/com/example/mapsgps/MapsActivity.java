@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -65,14 +66,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         userTracker = new UserTracker();
         gpsChecker = new GpsConnection(gps_fab, userTracker, this);
         deviceDatabase = new DeviceDatabase("test_id", this);
-        deviceSearch = new DeviceSearch(deviceDatabase, this);
-
-        search_fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                deviceSearch.searchDevices();
-            }
-        });
+        deviceSearch = new DeviceSearch(search_fab, deviceDatabase, this);
 
         updateGps();
 
