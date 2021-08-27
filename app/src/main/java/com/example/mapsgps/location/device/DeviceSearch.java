@@ -43,9 +43,6 @@ public class DeviceSearch {
             case DeviceDatabase.NOT_CONNECT:
                 notConnect();
                 break;
-            case DeviceDatabase.START_CONNECT:
-                Toast.makeText(context, "Please wait for searching your devices", Toast.LENGTH_SHORT).show();
-                break;
             case DeviceDatabase.SUCCESS_CONNECT:
                 successConnect(view);
         }
@@ -56,7 +53,6 @@ public class DeviceSearch {
             if (deviceDatabase.isMapConnect()) {
                 deviceDatabase.requestDevices();
             }
-            Toast.makeText(context, "Please wait for searching your devices", Toast.LENGTH_SHORT).show();
         } else{
             Toast.makeText(context, "Check your internet connection to see devices", Toast.LENGTH_LONG).show();
         }
