@@ -26,6 +26,8 @@ public class GpsConnection {
     private static final int FAST_UPDATE_INTERVAL = 5;
     private static final int DEFAULT_UPDATE_INTERVAL = 30;
 
+    private boolean isFoundLocation = false;
+
     LocationRequest locationRequest;
     LocationCallback locationCallBack;
     public FusedLocationProviderClient fusedLocationProviderClient;
@@ -40,7 +42,9 @@ public class GpsConnection {
             @Override
             public void onClick(View view) {
                 if(isEnabledGPS()){
-                    Camera.updateCamera(user.getPosition());
+                    if (isFoundLocation) {
+                        Camera.updateCamera(user.getPosition());
+                    }
                 }
                 else {
                     disconnectGPS();
@@ -73,12 +77,14 @@ public class GpsConnection {
     }
 
     private void connectGPS(){
+        isFoundLocation = true;
         user.getMarker().setVisible(true);
         gps_fab.setImageResource(R.drawable.gps_fixed);
         Camera.updateCamera(user.getPosition());
     }
 
     private void disconnectGPS(){
+        isFoundLocation = false;
         user.getMarker().setVisible(false);
         gps_fab.setImageResource(R.drawable.gps_not_fixed);
     }
