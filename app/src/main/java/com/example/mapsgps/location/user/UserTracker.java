@@ -1,14 +1,15 @@
-package com.example.mapsgps.location;
+package com.example.mapsgps.location.user;
 
 import com.example.mapsgps.R;
+import com.example.mapsgps.location.LocationTracker;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 public class UserTracker extends LocationTracker {
 
-    public UserTracker(LatLng position) {
-        super(position);
+    public UserTracker() {
+        super();
     }
 
     @Override
