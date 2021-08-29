@@ -51,22 +51,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     DeviceSearch deviceSearch;
 
     private FirebaseAuth mAuth;
+    FirebaseUser currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
+
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         startInit();
 
-        userTracker = new UserTracker();
-        gpsChecker = new GpsConnection(gps_fab, userTracker, this);
-        deviceDatabase = new DeviceDatabase("test_id", this);
-        deviceSearch = new DeviceSearch(search_fab, deviceDatabase, this);
+        if(currentUser != null) {
+            userTracker = new UserTracker();
+            gpsChecker = new GpsConnection(gps_fab, userTracker, this);
+            deviceDatabase = new DeviceDatabase("test_id", this);
+            deviceSearch = new DeviceSearch(search_fab, deviceDatabase, this);
 
-        updateGps();
-
-        mAuth = FirebaseAuth.getInstance();
+            updateGps();
+        }
     }
 
     private void startInit(){
@@ -117,13 +122,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
+        if (currentUser != null) {
             gpsChecker.startLocationUpdates();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        gpsChecker.stopLocationUpdates();
+        if(currentUser != null) {
+            gpsChecker.stopLocationUpdates();
+        }
     }
 
     @Override
@@ -164,8 +173,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        userTracker.addMarker(mMap);
-        deviceDatabase.setGoogleMap(mMap);
+        if (currentUser != null) {
+            userTracker.addMarker(mMap);
+            deviceDatabase.setGoogleMap(mMap);
+        }
 
         Camera.mMap = mMap;
         Camera.start();
@@ -174,7 +185,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStart() {
         super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null){
             Toast.makeText(MapsActivity.this, currentUser.getEmail(), Toast.LENGTH_LONG).show();
         } else {
