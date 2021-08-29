@@ -2,6 +2,7 @@ package com.example.mapsgps;
 
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -18,17 +19,21 @@ import android.view.View;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
+import com.example.mapsgps.registration.LoginActivity;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.example.mapsgps.location.Camera;
+import com.example.mapsgps.location.GpsConnection;
+import com.example.mapsgps.location.UserTracker;
 import com.example.mapsgps.location.device.DeviceDatabase;
 import com.example.mapsgps.location.device.DeviceSearch;
 import com.example.mapsgps.location.device.DeviceTracker;
 import com.example.mapsgps.location.user.GpsConnection;
 import com.example.mapsgps.location.user.UserTracker;
+
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -36,6 +41,10 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -56,6 +65,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     DeviceDatabase deviceDatabase;
     DeviceSearch deviceSearch;
 
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,13 +74,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(binding.getRoot());
         startInit();
 
-        userTracker = new UserTracker();
+        userTracker = new UserTracker(new LatLng(0, 0));
         gpsChecker = new GpsConnection(gps_fab, userTracker, this);
         deviceDatabase = new DeviceDatabase("test_id", this);
         deviceSearch = new DeviceSearch(search_fab, deviceDatabase, this);
 
         updateGps();
 
+        mAuth = FirebaseAuth.getInstance();
     }
 
     private void startInit(){
@@ -148,6 +160,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.add_device:
                 return true;
             case R.id.sign_out:
+                mAuth.signOut();
+                FirebaseUser user = mAuth.getCurrentUser();
+                signOut();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -169,5 +184,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Camera.mMap = mMap;
         Camera.start();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null){
+            Toast.makeText(MapsActivity.this, currentUser.getEmail(), Toast.LENGTH_LONG).show();
+        } else {
+            signOut();
+        }
+    }
+
+    private void signOut(){
+        Intent intent = new Intent(MapsActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 }
