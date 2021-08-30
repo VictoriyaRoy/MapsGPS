@@ -46,24 +46,26 @@ public class DeviceDatabase {
                     DataSnapshot dataSnapshot = task.getResult();
                     devices = new ArrayList<DeviceTracker>();
                     for (DataSnapshot ds : dataSnapshot.getChildren()){
-                        DeviceTracker new_device = new DeviceTracker(ds.getValue(String.class));
+                        DeviceTracker new_device = new DeviceTracker(ds.getKey(), ds.getValue(String.class));
                         devices.add(new_device);
                         new_device.addMarker(googleMap);
                     }
                     deviceStatus = SUCCESS_CONNECT;
                     Toast.makeText(context, "Your devices were found", Toast.LENGTH_SHORT).show();
                 } else{
-                    try {
-                        throw task.getException();
-                    } catch (Exception e) {
-                        if(e.getMessage() == "Client is offline"){
-                            Toast.makeText(context, "Check your internet connection to see devices", Toast.LENGTH_LONG).show();
-                            deviceStatus = NOT_CONNECT;
-                        }
-                    }
+                    exceptionCheck(task);
                 }
             }
         });
+    }
+
+    private void exceptionCheck(Task<DataSnapshot> task) {
+        String errorMsg = task.getException().getMessage();
+        if (errorMsg == "Client is offline"){
+            Toast.makeText(context, "Check your internet connection to see devices", Toast.LENGTH_LONG).show();
+        } else{
+            Toast.makeText(context, task.getException().getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     public void setGoogleMap(GoogleMap googleMap) {

@@ -23,6 +23,7 @@ import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.example.mapsgps.location.Camera;
 import com.example.mapsgps.location.device.DeviceDatabase;
 import com.example.mapsgps.location.device.DeviceSearch;
+import com.example.mapsgps.location.device.NewDeviceActivity;
 import com.example.mapsgps.location.user.GpsConnection;
 import com.example.mapsgps.location.user.UserTracker;
 import com.example.mapsgps.registration.LoginActivity;
@@ -38,6 +39,7 @@ import com.google.firebase.auth.FirebaseUser;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int PERMISSIONS_FINE_LOCATION = 99;
+    private static final String USER_ID = "user_id";
 
     GoogleMap mMap;
     private ActivityMapsBinding binding;
@@ -52,6 +54,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private FirebaseAuth mAuth;
     FirebaseUser currentUser;
+    private String userId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,9 +69,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         startInit();
 
         if(currentUser != null) {
+            userId = currentUser.getUid();
             userTracker = new UserTracker();
             gpsChecker = new GpsConnection(gps_fab, userTracker, this);
-            deviceDatabase = new DeviceDatabase("test_id", this);
+            deviceDatabase = new DeviceDatabase(userId, this);
             deviceSearch = new DeviceSearch(search_fab, deviceDatabase, this);
 
             updateGps();
@@ -152,15 +157,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         switch (item.getItemId())
         {
             case R.id.add_device:
+                add_device();
                 return true;
             case R.id.sign_out:
                 mAuth.signOut();
-                FirebaseUser user = mAuth.getCurrentUser();
                 signOut();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void add_device() {
+        Intent intent = new Intent(MapsActivity.this, NewDeviceActivity.class);
+        intent.putExtra(USER_ID, userId);
+        startActivity(intent);
     }
 
     /**

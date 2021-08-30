@@ -60,7 +60,7 @@ public class DeviceSearch {
 
     private void successConnect(View view) {
         List<DeviceTracker> devices = deviceDatabase.getDevices();
-        if (devices == null) {
+        if (devices.size() == 0) {
             Toast.makeText(context, "You have no connected devices yet", Toast.LENGTH_SHORT).show();
         } else if (devices.size() == 1) {
             devices.get(0).show();
