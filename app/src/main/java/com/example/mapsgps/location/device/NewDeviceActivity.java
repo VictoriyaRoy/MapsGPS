@@ -20,23 +20,24 @@ import com.google.firebase.database.FirebaseDatabase;
 public class NewDeviceActivity extends AppCompatActivity {
 
     private static final String USER_ID = "user_id";
-    private String userId;
+    private String userId, deviceId;
 
     private TextInputLayout titleInput, deviceIdInput, pinCodeInput;
     private Button add_device_btn;
 
     private FirebaseDatabase database;
+    private DatabaseReference deviceData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_device);
 
+        startInit();
         userId = getIntent().getStringExtra(USER_ID);
-
         database = FirebaseDatabase.getInstance("https://mapsgps-fd863-default-rtdb.europe-west1.firebasedatabase.app");
 
-        startInit();
+
     }
 
     private void startInit() {
@@ -48,15 +49,35 @@ public class NewDeviceActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 deviceIdInput.setErrorEnabled(false);
-                if (Credentials.checkEmpty(titleInput) & Credentials.checkEmpty(deviceIdInput) & Credentials.checkEmpty(pinCodeInput)){
-                    checkDeviceCode();
+                deviceId = Credentials.getData(deviceIdInput);
+                deviceData = database.getReference("Users").child(userId).child(deviceId);
+                if (Credentials.checkEmpty(deviceIdInput) & Credentials.checkEmpty(titleInput) & Credentials.checkEmpty(pinCodeInput)){
+                    checkIsNewDevice();
+                }
+            }
+        });
+    }
+
+    private void checkIsNewDevice(){
+        deviceData.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (task.isSuccessful()){
+                    Object result = task.getResult().getValue();
+                    if(result == null){
+                        checkDeviceCode();
+                    } else{
+                        deviceIdInput.setError("This device already connected to your account");
+                        deviceIdInput.setErrorEnabled(true);
+                    }
+                } else {
+                    exceptionCheck(task);
                 }
             }
         });
     }
 
     private void checkDeviceCode() {
-        String deviceId = Credentials.getData(deviceIdInput);
         DatabaseReference deviceCodes = database.getReference("DeviceCodes").child(deviceId);
         deviceCodes.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
@@ -69,7 +90,7 @@ public class NewDeviceActivity extends AppCompatActivity {
                     } else if (!rightPinCode.equals(Credentials.getData(pinCodeInput))){
                         Toast.makeText(NewDeviceActivity.this, "Check device id and pin code and try again", Toast.LENGTH_LONG).show();
                     } else {
-                        addDevice(deviceId, Credentials.getData(titleInput));
+                        addDevice();
                     }
                     
                 } else {
@@ -79,12 +100,13 @@ public class NewDeviceActivity extends AppCompatActivity {
         });
     }
 
-    private void addDevice(String deviceId, String deviceTitle) {
-        DatabaseReference userDatabase = database.getReference("Users").child(userId);
-        userDatabase.child(deviceId).setValue(deviceTitle);
+    private void addDevice() {
+        deviceData.setValue(Credentials.getData(titleInput));
         Toast.makeText(NewDeviceActivity.this, "Device was added", Toast.LENGTH_LONG).show();
         finish();
+
     }
+
 
     private void exceptionCheck(Task<DataSnapshot> task) {
         String errorMsg = task.getException().getMessage();
