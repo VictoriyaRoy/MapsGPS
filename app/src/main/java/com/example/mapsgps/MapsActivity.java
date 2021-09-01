@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -40,6 +41,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final int PERMISSIONS_FINE_LOCATION = 99;
     private static final String USER_ID = "user_id";
+    private static final int NEW_DEVICE_REQUEST = 1;
+    private static final String IS_ADDED_KEY = "is_added";
 
     GoogleMap mMap;
     private ActivityMapsBinding binding;
@@ -157,7 +160,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         switch (item.getItemId())
         {
             case R.id.add_device:
-                add_device();
+                addDevice();
                 return true;
             case R.id.sign_out:
                 mAuth.signOut();
@@ -168,10 +171,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void add_device() {
+    private void addDevice() {
         Intent intent = new Intent(MapsActivity.this, NewDeviceActivity.class);
         intent.putExtra(USER_ID, userId);
-        startActivity(intent);
+        startActivityForResult(intent, NEW_DEVICE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (data == null){return;}
+        if(data.getBooleanExtra(IS_ADDED_KEY, false) && deviceDatabase.isMapConnect()){
+            deviceDatabase.requestDevices();
+        }
     }
 
     /**
@@ -196,9 +208,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStart() {
         super.onStart();
-        if (currentUser != null){
-            Toast.makeText(MapsActivity.this, currentUser.getEmail(), Toast.LENGTH_LONG).show();
-        } else {
+        if (currentUser == null){
             signOut();
         }
     }

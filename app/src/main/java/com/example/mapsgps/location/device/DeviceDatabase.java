@@ -51,7 +51,6 @@ public class DeviceDatabase {
                         new_device.addMarker(googleMap);
                     }
                     deviceStatus = SUCCESS_CONNECT;
-                    Toast.makeText(context, "Your devices were found", Toast.LENGTH_SHORT).show();
                 } else{
                     exceptionCheck(task);
                 }
