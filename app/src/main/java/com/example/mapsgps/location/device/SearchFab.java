@@ -115,7 +115,7 @@ public class SearchFab {
         PopupMenu popupMenu = new PopupMenu(context, view);
         int orderNumber = 0;
         for (DeviceTracker device: devicesList){
-            popupMenu.getMenu().add(Menu.NONE, Menu.NONE, orderNumber, device.getId());
+            popupMenu.getMenu().add(Menu.NONE, Menu.NONE, orderNumber, device.getTitle());
             orderNumber ++;
         }
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {

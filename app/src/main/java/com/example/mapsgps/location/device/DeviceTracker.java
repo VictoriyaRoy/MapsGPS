@@ -61,4 +61,8 @@ public class DeviceTracker extends LocationTracker {
     public String getId() {
         return id;
     }
+
+    public String getTitle() {
+        return title;
+    }
 }
