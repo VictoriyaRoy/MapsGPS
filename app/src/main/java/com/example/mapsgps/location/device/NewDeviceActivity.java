@@ -18,6 +18,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+/**
+ * Activity for adding new device to user's account
+ */
 public class NewDeviceActivity extends AppCompatActivity {
 
     private static final String USER_ID = "user_id";
@@ -43,6 +46,9 @@ public class NewDeviceActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Declaration of all screen elements
+     */
     private void startInit() {
         titleInput = findViewById(R.id.title);
         deviceIdInput = findViewById(R.id.device_id);
@@ -61,6 +67,11 @@ public class NewDeviceActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Check if user hasn't this device connected yet
+     * If true, check correctness of entered data
+     * Otherwise, show message about it
+     */
     private void checkIsNewDevice(){
         deviceData.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
@@ -74,12 +85,17 @@ public class NewDeviceActivity extends AppCompatActivity {
                         deviceIdInput.setErrorEnabled(true);
                     }
                 } else {
-                    exceptionCheck(task);
+                    DeviceDatabase.exceptionCheck(task, NewDeviceActivity.this);
                 }
             }
         });
     }
 
+    /**
+     * Check if in database is device with entered id and pin-code
+     * If true, add new device to user's account
+     * Otherwise, show message about error
+     */
     private void checkDeviceCode() {
         DatabaseReference deviceCodes = database.getReference("DeviceCodes").child(deviceId);
         deviceCodes.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
@@ -97,12 +113,16 @@ public class NewDeviceActivity extends AppCompatActivity {
                     }
                     
                 } else {
-                    exceptionCheck(task);
+                    DeviceDatabase.exceptionCheck(task, NewDeviceActivity.this);
                 }
             }
         });
     }
 
+    /**
+     * Add new device to user's account
+     * Set result to update ui
+     */
     private void addDevice() {
         deviceData.setValue(Credentials.getData(titleInput));
         Toast.makeText(NewDeviceActivity.this, "Device was added", Toast.LENGTH_LONG).show();
@@ -112,15 +132,4 @@ public class NewDeviceActivity extends AppCompatActivity {
         finish();
 
     }
-
-
-    private void exceptionCheck(Task<DataSnapshot> task) {
-        String errorMsg = task.getException().getMessage();
-        if (errorMsg == "Client is offline"){
-            Toast.makeText(NewDeviceActivity.this, "Check your internet connection to add device", Toast.LENGTH_LONG).show();
-        } else{
-            Toast.makeText(NewDeviceActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
-
 }

@@ -15,6 +15,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class connect to Firebase database to find list of user's devices
+ *
+ * Variable "deviceStatus" represents status of connection:
+    * NOT_CONNECT - don't get a request for connection yet
+    * START_CONNECT - request is in process
+    * SUCCESS_CONNECT - list of devices was received
+ */
 public class DeviceDatabase {
 
     public static final String NOT_CONNECT = "not connect";
@@ -37,6 +45,9 @@ public class DeviceDatabase {
         this.context = context;
     }
 
+    /**
+     * Make request to Firebase database to find list of user's devices
+     */
     public void requestDevices(){
         deviceStatus = START_CONNECT;
         userRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
@@ -52,13 +63,16 @@ public class DeviceDatabase {
                     }
                     deviceStatus = SUCCESS_CONNECT;
                 } else{
-                    exceptionCheck(task);
+                    exceptionCheck(task, context);
                 }
             }
         });
     }
 
-    private void exceptionCheck(Task<DataSnapshot> task) {
+    /**
+     * If task isn't successful, show relevant message
+     */
+    static void exceptionCheck(Task<DataSnapshot> task, Context context) {
         String errorMsg = task.getException().getMessage();
         if (errorMsg == "Client is offline"){
             Toast.makeText(context, "Check your internet connection to see devices", Toast.LENGTH_LONG).show();
@@ -69,7 +83,6 @@ public class DeviceDatabase {
 
     public void setGoogleMap(GoogleMap googleMap) {
         this.googleMap = googleMap;
-        requestDevices();
     }
 
     public List<DeviceTracker> getDevices() {

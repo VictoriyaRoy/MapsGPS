@@ -12,6 +12,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+/**
+ * Class represents a device
+ * Auto-update a location of the device on map
+ */
 public class DeviceTracker extends LocationTracker {
 
     private static String dbLink = "https://mapsgps-fd863-default-rtdb.europe-west1.firebasedatabase.app";
@@ -22,10 +26,6 @@ public class DeviceTracker extends LocationTracker {
 
     public DeviceTracker() {
         super();
-    }
-
-    public String getId() {
-        return id;
     }
 
     public DeviceTracker(String id, String title) {
@@ -46,8 +46,6 @@ public class DeviceTracker extends LocationTracker {
 
             }
         });
-
-
     }
 
     public void show(){
@@ -58,5 +56,9 @@ public class DeviceTracker extends LocationTracker {
     public void addMarker(GoogleMap mMap) {
         super.addMarker(mMap);
         marker.setTitle(title);
+    }
+
+    public String getId() {
+        return id;
     }
 }

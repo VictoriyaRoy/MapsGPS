@@ -29,7 +29,9 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
-
+/**
+ * Activity for logging user to system
+ */
 public class LoginActivity extends AppCompatActivity {
 
     private static final int RC_SIGN_IN = 9001;
@@ -88,9 +90,14 @@ public class LoginActivity extends AppCompatActivity {
                 startActivityForResult(signInIntent, RC_SIGN_IN);
             }
         });
-
     }
 
+    /**
+     * If credentials is correct, sign in with user's email and password
+     * Otherwise, show error message
+     * @param email Entered email
+     * @param password Entered password
+     */
     private void signInWithEmail(String email, String password) {
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
@@ -122,6 +129,10 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Sign in with user's Google account
+     * @param idToken String of user's email
+     */
     private void signInWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
@@ -143,12 +154,19 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Sign in to system
+     * Open Maps Activity
+     */
     private void signIn(){
         Intent intent = new Intent(LoginActivity.this, MapsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
 
+    /**
+     * Delete text from fields
+     */
     private void clearFields(){
         emailInput.getEditText().setText("");
         emailInput.setErrorEnabled(false);

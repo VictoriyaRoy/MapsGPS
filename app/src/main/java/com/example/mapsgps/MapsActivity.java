@@ -23,7 +23,7 @@ import androidx.core.app.ActivityCompat;
 import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.example.mapsgps.location.Camera;
 import com.example.mapsgps.location.device.DeviceDatabase;
-import com.example.mapsgps.location.device.DeviceSearch;
+import com.example.mapsgps.location.device.SearchFab;
 import com.example.mapsgps.location.device.NewDeviceActivity;
 import com.example.mapsgps.location.user.GpsConnection;
 import com.example.mapsgps.location.user.UserTracker;
@@ -37,6 +37,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+/**
+ * Main Activity with map for showing locations of user and its devices
+ */
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int PERMISSIONS_FINE_LOCATION = 99;
@@ -53,7 +56,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     GpsConnection gpsChecker;
 
     DeviceDatabase deviceDatabase;
-    DeviceSearch deviceSearch;
+    SearchFab searchFab;
 
     private FirebaseAuth mAuth;
     FirebaseUser currentUser;
@@ -76,12 +79,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             userTracker = new UserTracker();
             gpsChecker = new GpsConnection(gps_fab, userTracker, this);
             deviceDatabase = new DeviceDatabase(userId, this);
-            deviceSearch = new DeviceSearch(search_fab, deviceDatabase, this);
+            searchFab = new SearchFab(search_fab, deviceDatabase, this);
 
             updateGps();
         }
     }
 
+    /**
+     * Start declaration of screen elements: map, toolbar, FABs
+     */
     private void startInit(){
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -93,6 +99,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         search_fab = findViewById(R.id.search_fab);
     }
 
+    /**
+     * Start request for user location
+     */
     public void updateGps() {
         gpsChecker.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -128,22 +137,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        if (currentUser != null) {
-            gpsChecker.startLocationUpdates();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if(currentUser != null) {
-            gpsChecker.stopLocationUpdates();
-        }
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         MenuInflater inflater = getMenuInflater();
@@ -171,38 +164,64 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    /**
+     * If user signs out, open registration screen
+     */
+    private void signOut(){
+        Intent intent = new Intent(MapsActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
+    /**
+     * Open screen for adding new device
+     */
     private void addDevice() {
         Intent intent = new Intent(MapsActivity.this, NewDeviceActivity.class);
         intent.putExtra(USER_ID, userId);
         startActivityForResult(intent, NEW_DEVICE_REQUEST);
     }
 
+    /**
+     * If user add new device, update ui
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (data == null){return;}
         if(data.getBooleanExtra(IS_ADDED_KEY, false) && deviceDatabase.isMapConnect()){
-            deviceDatabase.requestDevices();
+            searchFab.startConnection();
         }
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         if (currentUser != null) {
             userTracker.addMarker(mMap);
             deviceDatabase.setGoogleMap(mMap);
+            searchFab.startConnection();
         }
 
         Camera.mMap = mMap;
         Camera.start();
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (currentUser != null) {
+            gpsChecker.startLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(currentUser != null) {
+            gpsChecker.stopLocationUpdates();
+        }
     }
 
     @Override
@@ -211,11 +230,5 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (currentUser == null){
             signOut();
         }
-    }
-
-    private void signOut(){
-        Intent intent = new Intent(MapsActivity.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
     }
 }
