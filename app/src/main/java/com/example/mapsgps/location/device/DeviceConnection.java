@@ -8,37 +8,49 @@ import android.net.NetworkInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
+import com.example.mapsgps.MapsActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
 /**
- * This class process clicks on FAB for searching devices:
+ * This class controls status of connection to Firebase database:
  * If you haven't internet connection - show message about it
  * If devices are requesting now - show message about it
- * If devices are connected:
-    * If you haven't any device - show message about it
-    * If you have 1 device - show its location
-    * If you have a few devices - show popup menu, after choice show its location
+ * If devices are connected - do abstract method
  */
 
-public class SearchFab {
+public abstract class DeviceConnection {
     private DeviceDatabase deviceDatabase;
     private Context context;
 
-
-    public SearchFab(FloatingActionButton search_fab, DeviceDatabase database, Context context) {
-        search_fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                searchDevices(view);
-            }
-        });
+    private DeviceConnection(DeviceDatabase database, Context context) {
         this.deviceDatabase = database;
         this.context = context;
+    }
+
+    public DeviceConnection(Button button, DeviceDatabase database, Context context) {
+        this(database, context);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchDevices();
+            }
+        });
+    }
+
+    public DeviceConnection(FloatingActionButton search_fab, DeviceDatabase database, Context context) {
+        this(database, context);
+        search_fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchDevices();
+            }
+        });
     }
 
     /**
@@ -52,9 +64,8 @@ public class SearchFab {
 
     /**
      * Check status of connection to device database and do relevant function
-     * @param view - view of FAB to show menu there
      */
-    public void searchDevices(View view) {
+    public void searchDevices() {
         switch (deviceDatabase.getDeviceStatus()) {
             case DeviceDatabase.NOT_CONNECT:
                 //try to connect to database
@@ -68,7 +79,7 @@ public class SearchFab {
 
             case DeviceDatabase.SUCCESS_CONNECT:
                 //show devices
-                successConnect(view);
+                successConnect();
         }
     }
 
@@ -86,46 +97,5 @@ public class SearchFab {
         }
     }
 
-    /**
-     * Find the count of user's devices:
-        * If you haven't any device - show message about it
-        * If you have 1 device - show its location
-        * If you have a few devices - show popup menu, after choice show its location
-     * @param view - view of FAB to show menu there
-     */
-    private void successConnect(View view) {
-        List<DeviceTracker> devices = deviceDatabase.getDevices();
-        if (devices.size() == 0) {
-            Toast.makeText(context, "You have no connected devices yet", Toast.LENGTH_SHORT).show();
-        } else if (devices.size() == 1) {
-            devices.get(0).show();
-        } else {
-            showPopupMenu(view, devices);
-        }
-    }
-
-
-    /**
-     * Show menu to choose a device
-     * After choice, show this device on the map
-     * @param view - view of FAB to show menu there
-     * @param devicesList - list of user's devices
-     */
-    private void showPopupMenu(View view, List<DeviceTracker> devicesList) {
-        PopupMenu popupMenu = new PopupMenu(context, view);
-        int orderNumber = 0;
-        for (DeviceTracker device: devicesList){
-            popupMenu.getMenu().add(Menu.NONE, Menu.NONE, orderNumber, device.getTitle());
-            orderNumber ++;
-        }
-        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                devicesList.get(item.getOrder()).show();
-                return false;
-            }
-        });
-        popupMenu.show();
-    }
-
+    public abstract void successConnect();
 }

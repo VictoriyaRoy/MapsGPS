@@ -13,6 +13,7 @@ import android.text.style.ForegroundColorSpan;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,7 +24,8 @@ import androidx.core.app.ActivityCompat;
 import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.example.mapsgps.location.Camera;
 import com.example.mapsgps.location.device.DeviceDatabase;
-import com.example.mapsgps.location.device.SearchFab;
+import com.example.mapsgps.location.device.DeviceTracker;
+import com.example.mapsgps.location.device.DeviceConnection;
 import com.example.mapsgps.location.device.NewDeviceActivity;
 import com.example.mapsgps.location.user.GpsConnection;
 import com.example.mapsgps.location.user.UserTracker;
@@ -37,6 +39,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.util.List;
+
 /**
  * Main Activity with map for showing locations of user and its devices
  */
@@ -44,8 +48,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final int PERMISSIONS_FINE_LOCATION = 99;
     private static final String USER_ID = "user_id";
-    private static final int NEW_DEVICE_REQUEST = 1;
-    private static final String IS_ADDED_KEY = "is_added";
 
     GoogleMap mMap;
     private ActivityMapsBinding binding;
@@ -55,8 +57,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     UserTracker userTracker;
     GpsConnection gpsChecker;
 
-    DeviceDatabase deviceDatabase;
-    SearchFab searchFab;
+    public static DeviceDatabase deviceDatabase;
+    DeviceConnection deviceConnection;
 
     private FirebaseAuth mAuth;
     FirebaseUser currentUser;
@@ -79,8 +81,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             userTracker = new UserTracker();
             gpsChecker = new GpsConnection(gps_fab, userTracker, this);
             deviceDatabase = new DeviceDatabase(userId, this);
-            searchFab = new SearchFab(search_fab, deviceDatabase, this);
-
+            deviceConnection = new DeviceConnection(search_fab, deviceDatabase, this) {
+                @Override
+                public void successConnect() {
+                    showDevices();
+                }
+            };
             updateGps();
         }
     }
@@ -179,19 +185,46 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void addDevice() {
         Intent intent = new Intent(MapsActivity.this, NewDeviceActivity.class);
         intent.putExtra(USER_ID, userId);
-        startActivityForResult(intent, NEW_DEVICE_REQUEST);
+        startActivity(intent);
     }
 
     /**
-     * If user add new device, update ui
-     */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (data == null){return;}
-        if(data.getBooleanExtra(IS_ADDED_KEY, false) && deviceDatabase.isMapConnect()){
-            searchFab.startConnection();
+     * Find the count of user's devices:
+     * If you haven't any device - show message about it
+     * If you have 1 device - show its location
+     * If you have a few devices - show popup menu, after choice show its location
+     **/
+    private void showDevices() {
+        List<DeviceTracker> devices = deviceDatabase.getDevicesList();
+        if (devices.size() == 0) {
+            Toast.makeText(MapsActivity.this, "You have no connected devices yet", Toast.LENGTH_SHORT).show();
+        } else if (devices.size() == 1) {
+            devices.get(0).show();
+        } else {
+            showPopupMenu(devices);
         }
+    }
+
+    /**
+     * Show menu to choose a device
+     * After choice, show this device on the map
+     * @param devicesList - list of user's devices
+     **/
+    private void showPopupMenu(List<DeviceTracker> devicesList) {
+        PopupMenu popupMenu = new PopupMenu(MapsActivity.this, search_fab);
+        int orderNumber = 0;
+        for (DeviceTracker device: devicesList){
+            popupMenu.getMenu().add(Menu.NONE, Menu.NONE, orderNumber, device.getTitle());
+            orderNumber ++;
+        }
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                devicesList.get(item.getOrder()).show();
+                return false;
+            }
+        });
+        popupMenu.show();
     }
 
     @Override
@@ -200,7 +233,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (currentUser != null) {
             userTracker.addMarker(mMap);
             deviceDatabase.setGoogleMap(mMap);
-            searchFab.startConnection();
+            deviceConnection.startConnection();
         }
 
         Camera.mMap = mMap;
