@@ -60,8 +60,8 @@ public class DeviceDatabase {
                     devicesList = new ArrayList<DeviceTracker>();
                     for (DataSnapshot ds : dataSnapshot.getChildren()){
                         DeviceTracker newDevice = new DeviceTracker(ds.getKey(), ds.getValue(String.class));
-                        devicesList.add(newDevice);
                         newDevice.addMarker(googleMap);
+                        devicesList.add(newDevice);
                     }
                     deviceStatus = SUCCESS_CONNECT;
                 } else{
@@ -104,8 +104,8 @@ public class DeviceDatabase {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()){
-                    devicesList.add(newDevice);
                     newDevice.addMarker(googleMap);
+                    devicesList.add(newDevice);
                     Toast.makeText(myContext, "Device was added", Toast.LENGTH_SHORT).show();
                     ((Activity)myContext).finish();
                 } else{

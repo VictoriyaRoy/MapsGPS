@@ -32,7 +32,28 @@ public class DeviceTracker extends LocationTracker {
         super();
         this.id = id;
         this.title = title;
+    }
 
+    public void show(){
+        Camera.updateCamera(getPosition());
+    }
+
+    @Override
+    public void addMarker(GoogleMap mMap) {
+        super.addMarker(mMap);
+        marker.setTitle(title);
+        setLocationUpdate();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    private void setLocationUpdate(){
         devicesDB.child(id).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -46,23 +67,5 @@ public class DeviceTracker extends LocationTracker {
 
             }
         });
-    }
-
-    public void show(){
-        Camera.updateCamera(getPosition());
-    }
-
-    @Override
-    public void addMarker(GoogleMap mMap) {
-        super.addMarker(mMap);
-        marker.setTitle(title);
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getTitle() {
-        return title;
     }
 }
