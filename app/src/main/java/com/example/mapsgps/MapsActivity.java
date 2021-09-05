@@ -13,16 +13,20 @@ import android.text.style.ForegroundColorSpan;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.example.mapsgps.location.Camera;
 import com.example.mapsgps.location.device.DeviceDatabase;
-import com.example.mapsgps.location.device.DeviceSearch;
+import com.example.mapsgps.location.device.DeviceTracker;
+import com.example.mapsgps.location.device.DeviceConnection;
+import com.example.mapsgps.location.device.NewDeviceActivity;
 import com.example.mapsgps.location.user.GpsConnection;
 import com.example.mapsgps.location.user.UserTracker;
 import com.example.mapsgps.registration.LoginActivity;
@@ -35,9 +39,15 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.util.List;
+
+/**
+ * Main Activity with map for showing locations of user and its devices
+ */
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int PERMISSIONS_FINE_LOCATION = 99;
+    private static final String USER_ID = "user_id";
 
     GoogleMap mMap;
     private ActivityMapsBinding binding;
@@ -47,28 +57,43 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     UserTracker userTracker;
     GpsConnection gpsChecker;
 
-    DeviceDatabase deviceDatabase;
-    DeviceSearch deviceSearch;
+    public static DeviceDatabase deviceDatabase;
+    DeviceConnection deviceConnection;
 
     private FirebaseAuth mAuth;
+    FirebaseUser currentUser;
+    private String userId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
+
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         startInit();
 
-        userTracker = new UserTracker();
-        gpsChecker = new GpsConnection(gps_fab, userTracker, this);
-        deviceDatabase = new DeviceDatabase("test_id", this);
-        deviceSearch = new DeviceSearch(search_fab, deviceDatabase, this);
-
-        updateGps();
-
-        mAuth = FirebaseAuth.getInstance();
+        if(currentUser != null) {
+            userId = currentUser.getUid();
+            userTracker = new UserTracker();
+            gpsChecker = new GpsConnection(gps_fab, userTracker, this);
+            deviceDatabase = new DeviceDatabase(userId, this);
+            deviceConnection = new DeviceConnection(search_fab, deviceDatabase, this) {
+                @Override
+                public void successConnect() {
+                    showDevices();
+                }
+            };
+            updateGps();
+        }
     }
 
+    /**
+     * Start declaration of screen elements: map, toolbar, FABs
+     */
     private void startInit(){
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -80,6 +105,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         search_fab = findViewById(R.id.search_fab);
     }
 
+    /**
+     * Start request for user location
+     */
     public void updateGps() {
         gpsChecker.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -115,18 +143,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-            gpsChecker.startLocationUpdates();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        gpsChecker.stopLocationUpdates();
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         MenuInflater inflater = getMenuInflater();
@@ -143,10 +159,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         switch (item.getItemId())
         {
             case R.id.add_device:
+                addDevice();
                 return true;
             case R.id.sign_out:
                 mAuth.signOut();
-                FirebaseUser user = mAuth.getCurrentUser();
                 signOut();
                 return true;
             default:
@@ -155,36 +171,97 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
+     * If user signs out, open registration screen
      */
+    private void signOut(){
+        Intent intent = new Intent(MapsActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
+    /**
+     * Open screen for adding new device
+     */
+    private void addDevice() {
+        Intent intent = new Intent(MapsActivity.this, NewDeviceActivity.class);
+        intent.putExtra(USER_ID, userId);
+        startActivity(intent);
+    }
+
+    /**
+     * Find the count of user's devices:
+     * If you haven't any device - show message about it
+     * If you have 1 device - show its location
+     * If you have a few devices - show popup menu, after choice show its location
+     **/
+    private void showDevices() {
+        List<DeviceTracker> devices = deviceDatabase.getDevicesList();
+        if (devices.size() == 0) {
+            Toast.makeText(MapsActivity.this, "You have no connected devices yet", Toast.LENGTH_SHORT).show();
+        } else if (devices.size() == 1) {
+            devices.get(0).show();
+        } else {
+            showPopupMenu(devices);
+        }
+    }
+
+    /**
+     * Show menu to choose a device
+     * After choice, show this device on the map
+     * @param devicesList - list of user's devices
+     **/
+    private void showPopupMenu(List<DeviceTracker> devicesList) {
+        PopupMenu popupMenu = new PopupMenu(MapsActivity.this, search_fab);
+        int orderNumber = 0;
+        for (DeviceTracker device: devicesList){
+            popupMenu.getMenu().add(Menu.NONE, Menu.NONE, orderNumber, device.getTitle());
+            orderNumber ++;
+        }
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                devicesList.get(item.getOrder()).show();
+                return false;
+            }
+        });
+        popupMenu.show();
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        userTracker.addMarker(mMap);
-        deviceDatabase.setGoogleMap(mMap);
+        if (currentUser != null) {
+            userTracker.addMarker(mMap);
+            deviceDatabase.setGoogleMap(mMap);
+            deviceConnection.startConnection();
+        }
 
         Camera.mMap = mMap;
         Camera.start();
     }
 
+
     @Override
-    protected void onStart() {
-        super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null){
-            Toast.makeText(MapsActivity.this, currentUser.getEmail(), Toast.LENGTH_LONG).show();
-        } else {
-            signOut();
+    protected void onResume() {
+        super.onResume();
+        if (currentUser != null) {
+            gpsChecker.startLocationUpdates();
         }
     }
 
-    private void signOut(){
-        Intent intent = new Intent(MapsActivity.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(currentUser != null) {
+            gpsChecker.stopLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (currentUser == null){
+            signOut();
+        }
     }
 }

@@ -2,6 +2,9 @@ package com.example.mapsgps.location.device;
 
 import com.google.android.gms.maps.model.LatLng;
 
+/**
+ * Class represents entry about location of device
+ */
 public class DeviceEntry {
     public Integer day, hour, minute, month, second, year;
     public Double latitude, longitude;

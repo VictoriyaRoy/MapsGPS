@@ -1,5 +1,6 @@
 package com.example.mapsgps.location.device;
 
+import android.app.Activity;
 import android.content.Context;
 import android.widget.Toast;
 
@@ -7,6 +8,7 @@ import androidx.annotation.NonNull;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
@@ -15,6 +17,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class connect to Firebase database to find list of user's devices
+ *
+ * Variable "deviceStatus" represents status of connection:
+    * NOT_CONNECT - don't get a request for connection yet
+    * START_CONNECT - request is in process
+    * SUCCESS_CONNECT - list of devices was received
+ */
 public class DeviceDatabase {
 
     public static final String NOT_CONNECT = "not connect";
@@ -27,7 +37,7 @@ public class DeviceDatabase {
     private Context context;
 
     private String userId;
-    private List<DeviceTracker> devices;
+    private List<DeviceTracker> devicesList;
     private String deviceStatus = NOT_CONNECT;
 
     public DeviceDatabase(String userId, Context context) {
@@ -37,6 +47,9 @@ public class DeviceDatabase {
         this.context = context;
     }
 
+    /**
+     * Make request to Firebase database to find list of user's devices
+     */
     public void requestDevices(){
         deviceStatus = START_CONNECT;
         userRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
@@ -44,35 +57,38 @@ public class DeviceDatabase {
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if(task.isSuccessful()) {
                     DataSnapshot dataSnapshot = task.getResult();
-                    devices = new ArrayList<DeviceTracker>();
+                    devicesList = new ArrayList<DeviceTracker>();
                     for (DataSnapshot ds : dataSnapshot.getChildren()){
-                        DeviceTracker new_device = new DeviceTracker(ds.getValue(String.class));
-                        devices.add(new_device);
-                        new_device.addMarker(googleMap);
+                        DeviceTracker newDevice = new DeviceTracker(ds.getKey(), ds.getValue(String.class));
+                        newDevice.addMarker(googleMap);
+                        devicesList.add(newDevice);
                     }
                     deviceStatus = SUCCESS_CONNECT;
-                    Toast.makeText(context, "Your devices were found", Toast.LENGTH_SHORT).show();
                 } else{
-                    try {
-                        throw task.getException();
-                    } catch (Exception e) {
-                        if(e.getMessage() == "Client is offline"){
-                            Toast.makeText(context, "Check your internet connection to see devices", Toast.LENGTH_LONG).show();
-                            deviceStatus = NOT_CONNECT;
-                        }
-                    }
+                    exceptionCheck(task, context);
                 }
             }
         });
     }
 
-    public void setGoogleMap(GoogleMap googleMap) {
-        this.googleMap = googleMap;
-        requestDevices();
+    /**
+     * If task isn't successful, show relevant message
+     */
+    static void exceptionCheck(Task<?> task, Context context) {
+        String errorMsg = task.getException().getMessage();
+        if (errorMsg == "Client is offline"){
+            Toast.makeText(context, "Check your internet connection and try again", Toast.LENGTH_LONG).show();
+        } else{
+            Toast.makeText(context, task.getException().getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
-    public List<DeviceTracker> getDevices() {
-        return devices;
+    public void setGoogleMap(GoogleMap googleMap) {
+        this.googleMap = googleMap;
+    }
+
+    public List<DeviceTracker> getDevicesList() {
+        return devicesList;
     }
 
     public boolean isMapConnect() {
@@ -81,5 +97,21 @@ public class DeviceDatabase {
 
     public String getDeviceStatus(){
         return deviceStatus;
+    }
+
+    public void addNewDevice(DeviceTracker newDevice, Context myContext){
+        userRef.child(newDevice.getId()).setValue(newDevice.getTitle()).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    newDevice.addMarker(googleMap);
+                    devicesList.add(newDevice);
+                    Toast.makeText(myContext, "Device was added", Toast.LENGTH_SHORT).show();
+                    ((Activity)myContext).finish();
+                } else{
+                    exceptionCheck(task, myContext);
+                }
+            }
+        });
     }
 }

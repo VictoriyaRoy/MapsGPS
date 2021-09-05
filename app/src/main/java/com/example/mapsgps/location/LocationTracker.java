@@ -7,6 +7,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+/**
+ * Class represents a tracker of device or user on the map
+ */
 public class LocationTracker {
     protected Marker marker;
     protected LatLng position;

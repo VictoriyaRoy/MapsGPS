@@ -6,6 +6,10 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
+/**
+ * Class represents a user
+ * Auto-update a location of the user on map
+ */
 public class UserTracker extends LocationTracker {
 
     public UserTracker() {

@@ -20,6 +20,9 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 
+/**
+ * Activity for creations user's account
+ */
 public class SignUpActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
@@ -57,15 +60,17 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * If credentials is correct, create new account and verify email
+     * @param email Entered email
+     * @param password Entered password
+     */
     private void signUpWithEmail(String email, String password){
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     verifyEmail();
-//                    Toast.makeText(SignUpActivity.this, "Registration is successful", Toast.LENGTH_SHORT).show();
-//                    mAuth.signOut();
-//                    finish();
                 } else{
                     try {
                         throw task.getException();
@@ -86,6 +91,9 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Send verification letter to entered email
+     */
     private void verifyEmail() {
         FirebaseUser user = mAuth.getCurrentUser();
         user.sendEmailVerification().addOnCompleteListener(this, new OnCompleteListener<Void>() {

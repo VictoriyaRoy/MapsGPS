@@ -6,6 +6,9 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 
+/**
+ * Class is responsible for camera position
+ */
 public class Camera {
     public static GoogleMap mMap;
     private static final int CAMERA_ZOOM = 17;
