@@ -85,7 +85,6 @@ public class LoginActivity extends AppCompatActivity {
         google_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // FIXME: Don't request to choose acc at second time
                 Intent signInIntent = mGoogleSignInClient.getSignInIntent();
                 startActivityForResult(signInIntent, RC_SIGN_IN);
             }
@@ -160,6 +159,7 @@ public class LoginActivity extends AppCompatActivity {
      * Open Maps Activity
      */
     private void signIn(){
+        mGoogleSignInClient.signOut();
         Intent intent = new Intent(LoginActivity.this, MapsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
