@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="TextInputStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:layout_height">@dimen/field_height</item>
+        <item name="android:layout_centerHorizontal">true</item>
+        <item name="boxStrokeColor">@color/text_input_color</item>
+        <item name="boxBackgroundColor">@color/light_gray</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/field_round_corners</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/field_round_corners</item>
+        <item name="boxCornerRadiusTopStart">@dimen/field_round_corners</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/field_round_corners</item>
+    </style>
+
+    <style name="ButtonStyle" parent="Theme.MapsGps">
+        <item name="android:layout_height">@dimen/field_height</item>
+        <item name="android:layout_centerHorizontal">true</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="textAllCaps">false</item>
+        <item name="android:textSize">@dimen/field_text_size</item>
+        <item name="cornerRadius">@dimen/field_round_corners</item>
+    </style>
+</resources>
