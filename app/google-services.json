@@ -1,24 +1,25 @@
 {
   "project_info": {
     "project_number": "974834303071",
+    "firebase_url": "https://mapsgps-fd863-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "mapsgps-fd863",
     "storage_bucket": "mapsgps-fd863.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:974834303071:android:65f1e23afbf38399225bea",
+        "mobilesdk_app_id": "1:974834303071:android:f66189ffce03e235225bea",
         "android_client_info": {
           "package_name": "com.example.mapsgps"
         }
       },
       "oauth_client": [
         {
-          "client_id": "974834303071-je0sstcdqci4au8l2d74v4od8sp5l60k.apps.googleusercontent.com",
+          "client_id": "974834303071-ed4nofuaj6mrotsuubd6c8cibepsnmco.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.mapsgps",
-            "certificate_hash": "06cce99a2dc2b1214f2dd5406d40067032ed98d2"
+            "certificate_hash": "efb3250ad75e9fe8a94f0db9521621be4570e9be"
           }
         },
         {
