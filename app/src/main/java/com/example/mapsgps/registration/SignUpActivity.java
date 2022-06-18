@@ -3,11 +3,13 @@ package com.example.mapsgps.registration;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.mapsgps.MapsActivity;
 import com.example.mapsgps.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -23,9 +25,11 @@ import com.google.firebase.auth.FirebaseUser;
  * Activity for creations user's account
  */
 public class SignUpActivity extends AppCompatActivity {
+    private static final int RC_SIGN_IN = 9001;
 
     private FirebaseAuth mAuth;
     private TextInputLayout emailInput, passwordInput;
+    private GoogleRegistration googleRegistration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +49,20 @@ public class SignUpActivity extends AppCompatActivity {
             if (Credentials.checkEmailEmpty(emailInput) & Credentials.validatePassword(passwordInput)) {
                 signUpWithEmail(Credentials.getData(emailInput).trim(), Credentials.getData(passwordInput));
             }
+        });
+
+        String token = getString(getResources().getIdentifier("default_web_client_id", "string", getPackageName()));
+        googleRegistration = new GoogleRegistration(token, mAuth, SignUpActivity.this) {
+            @Override
+            void doSignIn() {
+                signIn();
+            }
+        };
+
+        Button google_btn = findViewById(R.id.google);
+        google_btn.setOnClickListener(v -> {
+            Intent signInIntent = googleRegistration.getSignInIntent();
+            startActivityForResult(signInIntent, RC_SIGN_IN);
         });
     }
 
@@ -94,5 +112,23 @@ public class SignUpActivity extends AppCompatActivity {
         });
         mAuth.signOut();
         finish();
+    }
+
+
+    /**
+     * Sign in to system
+     * Open Maps Activity
+     */
+    private void signIn() {
+        googleRegistration.signOut();
+        Intent intent = new Intent(SignUpActivity.this, MapsActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        googleRegistration.processRequest(requestCode, data);
     }
 }

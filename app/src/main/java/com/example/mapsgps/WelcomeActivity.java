@@ -22,7 +22,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         goToLogin.setOnClickListener(this);
         goToRegister.setOnClickListener(this);
-
     }
 
     @Override

@@ -9,6 +9,10 @@ public class DeviceEntry {
     public Integer day, hour, minute, month, second, year;
     public Double latitude, longitude;
 
+    public DeviceEntry() {
+
+    }
+
     public DeviceEntry(Integer day, Integer hour, Double latitude, Double longitude, Integer minute, Integer month, Integer second, Integer year) {
         this.day = day;
         this.hour = hour;

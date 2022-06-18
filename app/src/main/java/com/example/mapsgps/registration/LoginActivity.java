@@ -1,45 +1,31 @@
 package com.example.mapsgps.registration;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.mapsgps.MapsActivity;
 import com.example.mapsgps.R;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseNetworkException;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
 
 /**
  * Activity for logging user to system
  */
 public class LoginActivity extends AppCompatActivity {
-
     private static final int RC_SIGN_IN = 9001;
 
     private FirebaseAuth mAuth;
-    private GoogleSignInClient mGoogleSignInClient;
-
     private TextInputLayout emailInput, passwordInput;
+    private GoogleRegistration googleRegistration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,17 +51,17 @@ public class LoginActivity extends AppCompatActivity {
             clearFields();
         });
 
-        // Configure Google Sign In
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(getResources().getIdentifier("default_web_client_id", "string", getPackageName())))
-                .requestEmail()
-                .build();
-
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        String token = getString(getResources().getIdentifier("default_web_client_id", "string", getPackageName()));
+        googleRegistration = new GoogleRegistration(token, mAuth, LoginActivity.this) {
+            @Override
+            void doSignIn() {
+                signIn();
+            }
+        };
 
         Button google_btn = findViewById(R.id.google);
         google_btn.setOnClickListener(v -> {
-            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+            Intent signInIntent = googleRegistration.getSignInIntent();
             startActivityForResult(signInIntent, RC_SIGN_IN);
         });
     }
@@ -117,34 +103,11 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /**
-     * Sign in with user's Google account
-     *
-     * @param idToken String of user's email
-     */
-    private void signInWithGoogle(String idToken) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        // Sign in success, update UI with the signed-in user's information
-                        signIn();
-                    } else {
-                        // If sign in fails, display a message to the user.
-                        try {
-                            throw task.getException();
-                        } catch (Exception e) {
-                            Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-    }
-
-    /**
      * Sign in to system
      * Open Maps Activity
      */
     private void signIn() {
-        mGoogleSignInClient.signOut();
+        googleRegistration.signOut();
         Intent intent = new Intent(LoginActivity.this, MapsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
@@ -164,18 +127,6 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
-        if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                // Google Sign In was successful, authenticate with Firebase
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                signInWithGoogle(account.getIdToken());
-            } catch (ApiException e) {
-                // Google Sign In failed, update UI appropriately
-                Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }
+        googleRegistration.processRequest(requestCode, data);
     }
 }
