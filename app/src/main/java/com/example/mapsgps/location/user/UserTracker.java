@@ -3,7 +3,6 @@ package com.example.mapsgps.location.user;
 import com.example.mapsgps.R;
 import com.example.mapsgps.location.LocationTracker;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 /**

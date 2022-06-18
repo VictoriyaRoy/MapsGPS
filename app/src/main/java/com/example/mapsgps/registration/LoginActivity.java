@@ -40,8 +40,6 @@ public class LoginActivity extends AppCompatActivity {
     private GoogleSignInClient mGoogleSignInClient;
 
     private TextInputLayout emailInput, passwordInput;
-    private Button login_btn, google_btn;
-    private TextView sign_up_tv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,24 +51,18 @@ public class LoginActivity extends AppCompatActivity {
         emailInput = findViewById(R.id.email);
         passwordInput = findViewById(R.id.password);
 
-        login_btn = findViewById(R.id.login);
-        login_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (Credentials.checkEmailEmpty(emailInput) & Credentials.checkEmpty(passwordInput)){
-                    signInWithEmail(Credentials.getData(emailInput).trim(), Credentials.getData(passwordInput));
-                }
+        Button login_btn = findViewById(R.id.login);
+        login_btn.setOnClickListener(v -> {
+            if (Credentials.checkEmailEmpty(emailInput) & Credentials.checkEmpty(passwordInput)) {
+                signInWithEmail(Credentials.getData(emailInput).trim(), Credentials.getData(passwordInput));
             }
         });
 
-        sign_up_tv = findViewById(R.id.sign_up);
-        sign_up_tv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
-                startActivity(intent);
-                clearFields();
-            }
+        TextView sign_up_tv = findViewById(R.id.sign_up);
+        sign_up_tv.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
+            startActivity(intent);
+            clearFields();
         });
 
         // Configure Google Sign In
@@ -81,74 +73,67 @@ public class LoginActivity extends AppCompatActivity {
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        google_btn = findViewById(R.id.google);
-        google_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-                startActivityForResult(signInIntent, RC_SIGN_IN);
-            }
+        Button google_btn = findViewById(R.id.google);
+        google_btn.setOnClickListener(v -> {
+            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+            startActivityForResult(signInIntent, RC_SIGN_IN);
         });
     }
 
     /**
      * If credentials is correct, sign in with user's email and password
      * Otherwise, show error message
-     * @param email Entered email
+     *
+     * @param email    Entered email
      * @param password Entered password
      */
     private void signInWithEmail(String email, String password) {
 
-        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    FirebaseUser user = mAuth.getCurrentUser();
-                    if (user.isEmailVerified()){
-                        signIn();
-                    } else{
-                        Toast.makeText(LoginActivity.this, "Email " + user.getEmail() + " is not verified", Toast.LENGTH_SHORT).show();
-                    }
-
-                } else{
-                    try {
-                        throw task.getException();
-                    } catch (FirebaseAuthInvalidUserException e){
-                        emailInput.setError("User with this email doesn't exist");
-                        emailInput.setErrorEnabled(true);
-                    } catch (FirebaseAuthInvalidCredentialsException e){
-                        Toast.makeText(LoginActivity.this, "Check your email and password and try again", Toast.LENGTH_SHORT).show();
-                    } catch (FirebaseNetworkException e) {
-                        Toast.makeText(LoginActivity.this, "Check your internet connection and try again", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e){
-                        Toast.makeText(LoginActivity.this, e.getClass().toString(), Toast.LENGTH_SHORT).show();
-                    }
-
+        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser user = mAuth.getCurrentUser();
+                if (user.isEmailVerified()) {
+                    signIn();
+                } else {
+                    Toast.makeText(LoginActivity.this, "Email " + user.getEmail() + " is not verified", Toast.LENGTH_SHORT).show();
                 }
+
+            } else {
+                try {
+                    throw task.getException();
+                } catch (FirebaseAuthInvalidUserException e) {
+                    emailInput.setError("User with this email doesn't exist");
+                    emailInput.setErrorEnabled(true);
+                } catch (FirebaseAuthInvalidCredentialsException e) {
+                    Toast.makeText(LoginActivity.this, "Check your email and password and try again", Toast.LENGTH_SHORT).show();
+                } catch (FirebaseNetworkException e) {
+                    Toast.makeText(LoginActivity.this, "Check your internet connection and try again", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(LoginActivity.this, e.getClass().toString(), Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
     }
 
     /**
      * Sign in with user's Google account
+     *
      * @param idToken String of user's email
      */
     private void signInWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            signIn();
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            try {
-                                throw task.getException();
-                            } catch (Exception e){
-                                Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Sign in success, update UI with the signed-in user's information
+                        signIn();
+                    } else {
+                        // If sign in fails, display a message to the user.
+                        try {
+                            throw task.getException();
+                        } catch (Exception e) {
+                            Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -158,7 +143,7 @@ public class LoginActivity extends AppCompatActivity {
      * Sign in to system
      * Open Maps Activity
      */
-    private void signIn(){
+    private void signIn() {
         mGoogleSignInClient.signOut();
         Intent intent = new Intent(LoginActivity.this, MapsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -168,7 +153,7 @@ public class LoginActivity extends AppCompatActivity {
     /**
      * Delete text from fields
      */
-    private void clearFields(){
+    private void clearFields() {
         emailInput.getEditText().setText("");
         emailInput.setErrorEnabled(false);
 

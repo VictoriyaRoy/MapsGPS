@@ -6,12 +6,12 @@
     <item
         android:id="@+id/add_device"
         android:orderInCategory="1"
-        android:title="Add new device"
+        android:title="@string/add_device_btn"
         app:showAsAction="never"/>
 
     <item
         android:id="@+id/sign_out"
         android:orderInCategory="1"
-        android:title="Sign out"
+        android:title="@string/sign_out_btn"
         app:showAsAction="never"/>
 </menu>

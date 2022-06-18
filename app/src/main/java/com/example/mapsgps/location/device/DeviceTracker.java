@@ -5,7 +5,6 @@ import androidx.annotation.NonNull;
 import com.example.mapsgps.location.Camera;
 import com.example.mapsgps.location.LocationTracker;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -18,15 +17,12 @@ import com.google.firebase.database.ValueEventListener;
  */
 public class DeviceTracker extends LocationTracker {
 
-    private static String dbLink = "https://mapsgps-fd863-default-rtdb.europe-west1.firebasedatabase.app";
-    private static DatabaseReference devicesDB = FirebaseDatabase.getInstance(dbLink).getReference("Devices");
+    private static final String dbLink = "https://mapsgps-fd863-default-rtdb.europe-west1.firebasedatabase.app";
+    private static final DatabaseReference devicesDB = FirebaseDatabase.getInstance(dbLink).getReference("Devices");
 
-    private String id, title;
+    private final String id;
+    private final String title;
     private DeviceEntry entry;
-
-    public DeviceTracker() {
-        super();
-    }
 
     public DeviceTracker(String id, String title) {
         super();
@@ -34,7 +30,7 @@ public class DeviceTracker extends LocationTracker {
         this.title = title;
     }
 
-    public void show(){
+    public void show() {
         Camera.updateCamera(getPosition());
     }
 
@@ -53,7 +49,7 @@ public class DeviceTracker extends LocationTracker {
         return title;
     }
 
-    private void setLocationUpdate(){
+    private void setLocationUpdate() {
         devicesDB.child(id).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

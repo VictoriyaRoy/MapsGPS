@@ -5,6 +5,7 @@
     <string name="register_btn">Register</string>
     <string name="google_btn">Google</string>
     <string name="add_device_btn">Add new tracker</string>
+    <string name="sign_out_btn">Sign out</string>
 
     <string name="login_greeting">Welcome back!</string>
     <string name="register_greeting">Hello! Register to get started</string>

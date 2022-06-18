@@ -1,7 +1,5 @@
 package com.example.mapsgps.location;
 
-import android.location.Location;
-
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -15,19 +13,19 @@ public class LocationTracker {
     protected LatLng position;
 
     public LocationTracker() {
-        this.position = new LatLng(0,0);
+        this.position = new LatLng(0, 0);
     }
 
     public void setPosition(LatLng new_position) {
         if (new_position != position) {
             position = new_position;
-            if(marker != null) {
+            if (marker != null) {
                 marker.setPosition(position);
             }
         }
     }
 
-    public void addMarker(GoogleMap mMap){
+    public void addMarker(GoogleMap mMap) {
         setMarker(mMap.addMarker(new MarkerOptions().position(position)));
     }
 

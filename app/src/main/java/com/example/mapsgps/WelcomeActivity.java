@@ -28,7 +28,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     public void onClick(View view) {
         Intent intent = null;
-        switch(view.getId()) {
+        switch (view.getId()) {
             case R.id.go_to_login:
                 intent = new Intent(this, LoginActivity.class);
                 break;

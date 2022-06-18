@@ -14,7 +14,7 @@ public class Camera {
     private static final int CAMERA_ZOOM = 17;
     private static final int START_CAMERA_ZOOM = 17;
 
-    public static void updateCamera(LatLng position){
+    public static void updateCamera(LatLng position) {
         CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(CameraPosition.fromLatLngZoom(position, CAMERA_ZOOM));
         mMap.animateCamera(cameraUpdate, 1000, null);
     }

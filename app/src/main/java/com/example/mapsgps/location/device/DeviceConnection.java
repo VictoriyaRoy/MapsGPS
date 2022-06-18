@@ -5,17 +5,10 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
-import android.widget.PopupMenu;
 import android.widget.Toast;
 
-import com.example.mapsgps.MapsActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
-import java.util.List;
 
 /**
  * This class controls status of connection to Firebase database:
@@ -25,8 +18,8 @@ import java.util.List;
  */
 
 public abstract class DeviceConnection {
-    private DeviceDatabase deviceDatabase;
-    private Context context;
+    private final DeviceDatabase deviceDatabase;
+    private final Context context;
 
     private DeviceConnection(DeviceDatabase database, Context context) {
         this.deviceDatabase = database;
@@ -35,26 +28,17 @@ public abstract class DeviceConnection {
 
     public DeviceConnection(Button button, DeviceDatabase database, Context context) {
         this(database, context);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                searchDevices();
-            }
-        });
+        button.setOnClickListener(v -> searchDevices());
     }
 
     public DeviceConnection(FloatingActionButton search_fab, DeviceDatabase database, Context context) {
         this(database, context);
-        search_fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                searchDevices();
-            }
-        });
+        search_fab.setOnClickListener(v -> searchDevices());
     }
 
     /**
      * Check if internet is connected
+     *
      * @return boolean true if connected, and false otherwise
      */
     public boolean isOnline() {
@@ -88,11 +72,11 @@ public abstract class DeviceConnection {
      * Otherwise, show message about internet connection
      */
     public void startConnection() {
-        if(isOnline()){
+        if (isOnline()) {
             if (deviceDatabase.isMapConnect()) {
                 deviceDatabase.requestDevices();
             }
-        } else{
+        } else {
             Toast.makeText(context, "Check your internet connection and try again", Toast.LENGTH_LONG).show();
         }
     }

@@ -1,20 +1,15 @@
 package com.example.mapsgps.location.device;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.mapsgps.MapsActivity;
 import com.example.mapsgps.R;
 import com.example.mapsgps.registration.Credentials;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -25,14 +20,13 @@ import java.util.List;
  */
 public class NewDeviceActivity extends AppCompatActivity {
 
-    private static final String USER_ID = "user_id";
-    private String userId, newId, newTitle;
+    private String newId;
+    private String newTitle;
 
     private TextInputLayout title_input, id_input, pin_code_input;
     private Button add_device_btn;
 
     private FirebaseDatabase database;
-    private DatabaseReference deviceData;
     private DeviceDatabase deviceDatabase;
     private DeviceConnection deviceConnection;
 
@@ -43,10 +37,7 @@ public class NewDeviceActivity extends AppCompatActivity {
 
         deviceDatabase = MapsActivity.deviceDatabase;
         startInit();
-        userId = getIntent().getStringExtra(USER_ID);
         database = FirebaseDatabase.getInstance("https://mapsgps-fd863-default-rtdb.europe-west1.firebasedatabase.app");
-
-
     }
 
     /**
@@ -60,7 +51,7 @@ public class NewDeviceActivity extends AppCompatActivity {
         deviceConnection = new DeviceConnection(add_device_btn, deviceDatabase, NewDeviceActivity.this) {
             @Override
             public void searchDevices() {
-                if (Credentials.checkEmpty(id_input) & Credentials.checkEmpty(title_input) & Credentials.checkEmpty(pin_code_input)){
+                if (Credentials.checkEmpty(id_input) & Credentials.checkEmpty(title_input) & Credentials.checkEmpty(pin_code_input)) {
                     super.searchDevices();
                 }
             }
@@ -74,21 +65,21 @@ public class NewDeviceActivity extends AppCompatActivity {
 
     /**
      * Check if device with entered id doesn't connect to user's account yet
-     *   and if title is different from another user's devices
+     * and if title is different from another user's devices
      * If true, check correctness of entered data
      * Otherwise, show message about error
      */
-    private void checkUniqueness(){
+    private void checkUniqueness() {
         newId = Credentials.getData(id_input);
         newTitle = Credentials.getData(title_input);
         List<DeviceTracker> devicesList = deviceDatabase.getDevicesList();
-        for (DeviceTracker device : devicesList){
-            if(device.getId().equals(newId)){
+        for (DeviceTracker device : devicesList) {
+            if (device.getId().equals(newId)) {
                 id_input.setError("This device already connected to your account");
                 id_input.setErrorEnabled(true);
                 return;
             }
-            if (device.getTitle().equals(newTitle)){
+            if (device.getTitle().equals(newTitle)) {
                 title_input.setError("You already have a device with the same title");
                 title_input.setErrorEnabled(true);
                 return;
@@ -104,23 +95,20 @@ public class NewDeviceActivity extends AppCompatActivity {
      */
     private void checkCorrectness() {
         DatabaseReference deviceCodes = database.getReference("DeviceCodes").child(newId);
-        deviceCodes.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if(task.isSuccessful()){
-                    Object rightPinCode = task.getResult().getValue();
-                    if (rightPinCode == null){
-                        id_input.setError("Device with this id doesn't exist");
-                        id_input.setErrorEnabled(true);
-                    } else if (!rightPinCode.equals(Credentials.getData(pin_code_input))){
-                        Toast.makeText(NewDeviceActivity.this, "Check device id and pin code and try again", Toast.LENGTH_LONG).show();
-                    } else {
-                        addDevice();
-                    }
-                    
+        deviceCodes.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Object rightPinCode = task.getResult().getValue();
+                if (rightPinCode == null) {
+                    id_input.setError("Device with this id doesn't exist");
+                    id_input.setErrorEnabled(true);
+                } else if (!rightPinCode.equals(Credentials.getData(pin_code_input))) {
+                    Toast.makeText(NewDeviceActivity.this, "Check device id and pin code and try again", Toast.LENGTH_LONG).show();
                 } else {
-                    DeviceDatabase.exceptionCheck(task, NewDeviceActivity.this);
+                    addDevice();
                 }
+
+            } else {
+                DeviceDatabase.exceptionCheck(task, NewDeviceActivity.this);
             }
         });
     }
@@ -129,7 +117,7 @@ public class NewDeviceActivity extends AppCompatActivity {
      * Add new device to user's account
      */
     private void addDevice() {
-        if(deviceConnection.isOnline()){
+        if (deviceConnection.isOnline()) {
             deviceDatabase.addNewDevice(new DeviceTracker(newId, newTitle), NewDeviceActivity.this);
         } else {
             Toast.makeText(NewDeviceActivity.this, "Check your internet connection and try again", Toast.LENGTH_LONG).show();

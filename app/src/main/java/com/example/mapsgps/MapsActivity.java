@@ -17,19 +17,17 @@ import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.example.mapsgps.location.Camera;
+import com.example.mapsgps.location.device.DeviceConnection;
 import com.example.mapsgps.location.device.DeviceDatabase;
 import com.example.mapsgps.location.device.DeviceTracker;
-import com.example.mapsgps.location.device.DeviceConnection;
 import com.example.mapsgps.location.device.NewDeviceActivity;
 import com.example.mapsgps.location.user.GpsConnection;
 import com.example.mapsgps.location.user.UserTracker;
-import com.example.mapsgps.registration.LoginActivity;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -47,9 +45,7 @@ import java.util.List;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int PERMISSIONS_FINE_LOCATION = 99;
-    private static final String USER_ID = "user_id";
 
-    GoogleMap mMap;
     private ActivityMapsBinding binding;
 
     private FloatingActionButton search_fab, gps_fab;
@@ -61,8 +57,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     DeviceConnection deviceConnection;
 
     private FirebaseAuth mAuth;
-    FirebaseUser currentUser;
-    private String userId;
+    private FirebaseUser currentUser;
 
 
     @Override
@@ -76,8 +71,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(binding.getRoot());
         startInit();
 
-        if(currentUser != null) {
-            userId = currentUser.getUid();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
             userTracker = new UserTracker();
             gpsChecker = new GpsConnection(gps_fab, userTracker, this);
             deviceDatabase = new DeviceDatabase(userId, this);
@@ -94,7 +89,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     /**
      * Start declaration of screen elements: map, toolbar, FABs
      */
-    private void startInit(){
+    private void startInit() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -117,10 +112,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     gpsChecker.successUpdate(location);
                 }
             });
-        }
-        else {
+        } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_FINE_LOCATION);
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_FINE_LOCATION);
             }
         }
     }
@@ -129,22 +123,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        switch (requestCode) {
-            case PERMISSIONS_FINE_LOCATION:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    updateGps();
-                }
-                else {
-                    Toast.makeText(this, "This app requires permission to be granted in order to work properly", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-                break;
+        if (requestCode == PERMISSIONS_FINE_LOCATION) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                updateGps();
+            } else {
+                Toast.makeText(this, "This app requires permission to be granted in order to work properly", Toast.LENGTH_SHORT).show();
+                finish();
+            }
         }
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
+    public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_maps, menu);
         MenuItem signOutItem = menu.getItem(1);
@@ -156,8 +146,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId())
-        {
+        switch (item.getItemId()) {
             case R.id.add_device:
                 addDevice();
                 return true;
@@ -173,8 +162,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     /**
      * If user signs out, open registration screen
      */
-    private void signOut(){
-        Intent intent = new Intent(MapsActivity.this, LoginActivity.class);
+    private void signOut() {
+        Intent intent = new Intent(MapsActivity.this, WelcomeActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
@@ -184,7 +173,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
      */
     private void addDevice() {
         Intent intent = new Intent(MapsActivity.this, NewDeviceActivity.class);
-        intent.putExtra(USER_ID, userId);
         startActivity(intent);
     }
 
@@ -208,35 +196,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     /**
      * Show menu to choose a device
      * After choice, show this device on the map
+     *
      * @param devicesList - list of user's devices
      **/
     private void showPopupMenu(List<DeviceTracker> devicesList) {
         PopupMenu popupMenu = new PopupMenu(MapsActivity.this, search_fab);
         int orderNumber = 0;
-        for (DeviceTracker device: devicesList){
+        for (DeviceTracker device : devicesList) {
             popupMenu.getMenu().add(Menu.NONE, Menu.NONE, orderNumber, device.getTitle());
-            orderNumber ++;
+            orderNumber++;
         }
-        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                devicesList.get(item.getOrder()).show();
-                return false;
-            }
+        popupMenu.setOnMenuItemClickListener(item -> {
+            devicesList.get(item.getOrder()).show();
+            return false;
         });
         popupMenu.show();
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+    public void onMapReady(@NonNull GoogleMap googleMap) {
         if (currentUser != null) {
-            userTracker.addMarker(mMap);
-            deviceDatabase.setGoogleMap(mMap);
+            userTracker.addMarker(googleMap);
+            deviceDatabase.setGoogleMap(googleMap);
             deviceConnection.startConnection();
         }
 
-        Camera.mMap = mMap;
+        Camera.mMap = googleMap;
         Camera.start();
     }
 
@@ -252,7 +237,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onPause() {
         super.onPause();
-        if(currentUser != null) {
+        if (currentUser != null) {
             gpsChecker.stopLocationUpdates();
         }
     }
@@ -260,7 +245,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStart() {
         super.onStart();
-        if (currentUser == null){
+        if (currentUser == null) {
             signOut();
         }
     }

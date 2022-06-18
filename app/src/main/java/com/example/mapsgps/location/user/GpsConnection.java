@@ -42,18 +42,14 @@ public class GpsConnection {
     Context context;
 
     public GpsConnection(FloatingActionButton gps_fab, UserTracker user, Context context) {
-       gps_fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(isEnabledGPS()){
-                    if (isFoundLocation) {
-                        Camera.updateCamera(user.getPosition());
-                    }
+        gps_fab.setOnClickListener(view -> {
+            if (isEnabledGPS()) {
+                if (isFoundLocation) {
+                    Camera.updateCamera(user.getPosition());
                 }
-                else {
-                    disconnectGPS();
-                    buildAlertMessageNoGps();
-                }
+            } else {
+                disconnectGPS();
+                buildAlertMessageNoGps();
             }
         });
         this.gps_fab = gps_fab;
@@ -78,15 +74,15 @@ public class GpsConnection {
     /**
      * @return boolean Value is gps connected on user's phone
      */
-    private boolean isEnabledGPS(){
-        final LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
+    private boolean isEnabledGPS() {
+        final LocationManager manager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         return manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
     }
 
     /**
      * Update ui when gps is connected
      */
-    private void connectGPS(){
+    private void connectGPS() {
         isFoundLocation = true;
         user.getMarker().setVisible(true);
         gps_fab.setImageResource(R.drawable.gps_fixed);
@@ -96,7 +92,7 @@ public class GpsConnection {
     /**
      * Update ui when gps is disconnected
      */
-    private void disconnectGPS(){
+    private void disconnectGPS() {
         isFoundLocation = false;
         user.getMarker().setVisible(false);
         gps_fab.setImageResource(R.drawable.gps_not_fixed);
@@ -111,28 +107,21 @@ public class GpsConnection {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
         builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
                 .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        context.startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        dialog.cancel();
-                    }
-                });
+                .setPositiveButton("Yes", (dialog, id) -> context.startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)))
+                .setNegativeButton("No", (dialog, id) -> dialog.cancel());
         final AlertDialog alert = builder.create();
         alert.show();
     }
 
     /**
      * If request receive not-null location - gps is connected
+     *
      * @param location - location returned by request
      */
     public void successUpdate(Location location) {
-        if (location != null){
+        if (location != null) {
             user.setPosition(new LatLng(location.getLatitude(), location.getLongitude()));
-            if(!user.getMarker().isVisible()) {
+            if (!user.getMarker().isVisible()) {
                 connectGPS();
             }
         }
@@ -142,7 +131,7 @@ public class GpsConnection {
      * Start to track and show user's location
      */
     public void startLocationUpdates() {
-        if(requestingLocationUpdates) {
+        if (requestingLocationUpdates) {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallBack, null);
             }
