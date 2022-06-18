@@ -44,24 +44,16 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/go_to_login"
-            style="@style/ButtonStyle"
+            style="@style/BlackButtonStyle"
             android:layout_width="match_parent"
             android:layout_marginBottom="@dimen/field_margin"
-            android:backgroundTint="@color/black"
-            android:text="Login"
-            android:textColor="@color/white" />
+            android:text="Login" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/go_to_register"
-            style="@style/ButtonStyle"
+            style="@style/WhiteButtonStyle"
             android:layout_width="match_parent"
-            android:text="Register"
-            android:textColor="@color/black"
-            android:backgroundTint="@color/white"
-            app:rippleColor="@color/light_blue"
-            app:strokeColor="@color/black"
-            app:strokeWidth="1dp"
-            />
+            android:text="Register" />
 
     </LinearLayout>
 

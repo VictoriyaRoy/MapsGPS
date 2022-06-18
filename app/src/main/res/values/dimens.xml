@@ -5,4 +5,8 @@
     <dimen name="field_text_size">16sp</dimen>
     <dimen name="field_margin">4dp</dimen>
     <dimen name="field_round_corners">12dp</dimen>
+
+    <dimen name="greeting_text_size">30sp</dimen>
+    <dimen name="default_text">15sp</dimen>
+    <dimen name="small_text">12sp</dimen>
 </resources>
