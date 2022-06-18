@@ -14,7 +14,7 @@
         style="@style/GreetingText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello! Register to get started" />
+        android:text="@string/register_greeting" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/email"
@@ -28,7 +28,7 @@
             style="@style/EditTextStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email" />
+            android:hint="@string/email_hint" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -46,7 +46,7 @@
             style="@style/EditTextStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password"
+            android:hint="@string/password_hint"
             android:inputType="textPassword" />
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -57,7 +57,7 @@
         android:layout_width="match_parent"
         android:layout_below="@id/password"
         android:layout_marginTop="32dp"
-        android:text="Register" />
+        android:text="@string/register_btn" />
 
     <LinearLayout
         android:id="@+id/other_login"
@@ -80,7 +80,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
-            android:text="Or Register with"
+            android:text="@string/or_register_with"
             android:textSize="14sp" />
 
         <View
@@ -96,7 +96,7 @@
         style="@style/WhiteButtonStyle"
         android:layout_width="match_parent"
         android:layout_below="@id/other_login"
-        android:text="Google" />
+        android:text="@string/google_btn" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -105,11 +105,10 @@
         android:layout_alignParentBottom="true">
 
         <TextView
-            android:id="@+id/have_acc"
             style="@style/DefaultText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Already have an account?" />
+            android:text="@string/have_account" />
 
         <TextView
             android:id="@+id/login"
@@ -118,7 +117,7 @@
             android:layout_height="48dp"
             android:padding="8dp"
             android:gravity="center"
-            android:text="Login Now" />
+            android:text="@string/login_now" />
 
     </LinearLayout>
 

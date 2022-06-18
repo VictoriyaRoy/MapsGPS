@@ -11,7 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scaleType="centerCrop"
-        android:src="@drawable/background" />
+        android:src="@drawable/background"
+        tools:ignore="ImageContrastCheck" />
 
     <ImageView
         android:id="@+id/icon_img"
@@ -47,13 +48,13 @@
             style="@style/BlackButtonStyle"
             android:layout_width="match_parent"
             android:layout_marginBottom="@dimen/field_margin"
-            android:text="Login" />
+            android:text="@string/login_btn" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/go_to_register"
             style="@style/WhiteButtonStyle"
             android:layout_width="match_parent"
-            android:text="Register" />
+            android:text="@string/register_btn" />
 
     </LinearLayout>
 
