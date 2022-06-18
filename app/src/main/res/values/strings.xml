@@ -4,12 +4,17 @@
     <string name="login_btn">Login</string>
     <string name="register_btn">Register</string>
     <string name="google_btn">Google</string>
+    <string name="add_device_btn">Add new tracker</string>
 
     <string name="login_greeting">Welcome back!</string>
     <string name="register_greeting">Hello! Register to get started</string>
+    <string name="add_device_greeting">Enter information about the tracker</string>
 
     <string name="email_hint">Email</string>
     <string name="password_hint">Password</string>
+    <string name="title_hint">Title</string>
+    <string name="id_hint">Tracker id</string>
+    <string name="pin_code_hint">Pin code</string>
 
     <string name="no_account">Don\'t have an account?</string>
     <string name="have_account">Already have an account?</string>

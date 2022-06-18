@@ -4,55 +4,61 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="45dp"
+    android:paddingHorizontal="32dp"
+    android:paddingVertical="40dp"
     tools:context=".registration.LoginActivity">
 
+    <TextView
+        android:id="@+id/add_device_text"
+        style="@style/GreetingText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/add_device_greeting" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/title"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/field_height">
+        style="@style/InputLayoutStyle"
+        android:layout_marginTop="20dp"
+        android:layout_below="@id/add_device_text"
+        android:layout_width="match_parent">
 
         <com.google.android.material.textfield.TextInputEditText
+            style="@style/EditTextStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Title"
-            android:textSize="@dimen/field_text_size" />
+            android:hint="@string/title_hint" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/device_id"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/InputLayoutStyle"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/field_height"
         android:layout_below="@id/title"
         android:layout_marginTop="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
+            style="@style/EditTextStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Device id"
-            android:textSize="@dimen/field_text_size" />
+            android:hint="@string/id_hint" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/pin_code"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/InputLayoutStyle"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/field_height"
         android:layout_below="@id/device_id"
         android:layout_marginTop="8dp"
         app:passwordToggleContentDescription="description"
-        app:passwordToggleEnabled="true"
-        app:passwordToggleTint="@color/purple_500">
+        app:passwordToggleEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
+            style="@style/EditTextStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Pin code"
+            android:hint="@string/pin_code_hint"
             android:inputType="textPassword"
             android:textSize="@dimen/field_text_size" />
 
@@ -60,13 +66,11 @@
 
     <Button
         android:id="@+id/add_device"
+        style="@style/BlackButtonStyle"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/field_height"
         android:layout_below="@id/pin_code"
         android:layout_centerInParent="true"
-        android:layout_marginTop="24dp"
-        android:text="Add new device"
-        android:textAllCaps="false"
-        android:textSize="16dp" />
+        android:layout_marginTop="32dp"
+        android:text="@string/add_device_btn" />
 
 </RelativeLayout>
