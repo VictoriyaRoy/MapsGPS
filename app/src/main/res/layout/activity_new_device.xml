@@ -2,10 +2,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/MainLayoutStyle"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingHorizontal="32dp"
-    android:paddingVertical="40dp"
     tools:context=".registration.LoginActivity">
 
     <TextView
@@ -20,7 +19,8 @@
         style="@style/InputLayoutStyle"
         android:layout_marginTop="20dp"
         android:layout_below="@id/add_device_text"
-        android:layout_width="match_parent">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
             style="@style/EditTextStyle"
@@ -34,6 +34,7 @@
         android:id="@+id/device_id"
         style="@style/InputLayoutStyle"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:layout_marginTop="8dp">
 
@@ -49,6 +50,7 @@
         android:id="@+id/pin_code"
         style="@style/InputLayoutStyle"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@id/device_id"
         android:layout_marginTop="8dp"
         app:passwordToggleContentDescription="description"

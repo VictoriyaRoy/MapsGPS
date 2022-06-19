@@ -13,6 +13,7 @@ import android.text.style.ForegroundColorSpan;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
@@ -48,7 +49,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private ActivityMapsBinding binding;
 
-    private FloatingActionButton search_fab, gps_fab;
+    private FloatingActionButton search_fab, gps_fab, settings_fab;
 
     UserTracker userTracker;
     GpsConnection gpsChecker;
@@ -94,10 +95,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        setSupportActionBar(binding.toolbar);
-
         gps_fab = findViewById(R.id.gps_fab);
         search_fab = findViewById(R.id.search_fab);
+        settings_fab = findViewById(R.id.settings_fab);
+        settings_fab.setOnClickListener(view -> showSettingsMenu());
     }
 
     /**
@@ -133,38 +134,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_maps, menu);
-        MenuItem signOutItem = menu.getItem(1);
-        SpannableString spannable = new SpannableString("Sign out");
-        spannable.setSpan(new ForegroundColorSpan(Color.RED), 0, spannable.length(), 0);
-        signOutItem.setTitle(spannable);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.add_device:
-                addDevice();
-                return true;
-            case R.id.sign_out:
-                mAuth.signOut();
-                signOut();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
     /**
      * If user signs out, open registration screen
      */
     private void signOut() {
         Intent intent = new Intent(MapsActivity.this, WelcomeActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivity(intent);
     }
 
@@ -189,7 +164,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (devices.size() == 1) {
             devices.get(0).show();
         } else {
-            showPopupMenu(devices);
+            showDeviceMenu(devices);
         }
     }
 
@@ -199,7 +174,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
      *
      * @param devicesList - list of user's devices
      **/
-    private void showPopupMenu(List<DeviceTracker> devicesList) {
+    private void showDeviceMenu(List<DeviceTracker> devicesList) {
         PopupMenu popupMenu = new PopupMenu(MapsActivity.this, search_fab);
         int orderNumber = 0;
         for (DeviceTracker device : devicesList) {
@@ -211,6 +186,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return false;
         });
         popupMenu.show();
+    }
+
+    private void showSettingsMenu() {
+        PopupMenu popup = new PopupMenu(MapsActivity.this, settings_fab);
+        MenuInflater inflater = popup.getMenuInflater();
+        Menu menu = popup.getMenu();
+        inflater.inflate(R.menu.menu_maps, menu);
+        MenuItem signOutItem = menu.getItem(1);
+        SpannableString spannable = new SpannableString("Sign out");
+        spannable.setSpan(new ForegroundColorSpan(Color.RED), 0, spannable.length(), 0);
+        signOutItem.setTitle(spannable);
+
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.add_device:
+                    addDevice();
+                    return true;
+                case R.id.sign_out:
+                    mAuth.signOut();
+                    signOut();
+                    return true;
+                default:
+                    return super.onOptionsItemSelected(item);
+            }
+        });
+        popup.show();
     }
 
     @Override

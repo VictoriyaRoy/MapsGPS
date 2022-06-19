@@ -42,7 +42,10 @@ public class SignUpActivity extends AppCompatActivity {
         passwordInput = findViewById(R.id.password);
 
         TextView login_tv = findViewById(R.id.login);
-        login_tv.setOnClickListener(v -> finish());
+        login_tv.setOnClickListener(v -> {
+            Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
+            startActivity(intent);
+        });
 
         Button sign_up_btn = findViewById(R.id.sign_up);
         sign_up_btn.setOnClickListener(v -> {
