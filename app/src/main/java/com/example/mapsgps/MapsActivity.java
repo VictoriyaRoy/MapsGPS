@@ -1,242 +1,253 @@
 package com.example.mapsgps;
 
+
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.location.Location;
+import android.os.Build;
+import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.PopupMenu;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import android.Manifest;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.GpsStatus;
-import android.location.Location;
-import android.location.LocationManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Toast;
-
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
+import com.example.mapsgps.databinding.ActivityMapsBinding;
+import com.example.mapsgps.location.Camera;
+import com.example.mapsgps.location.device.DeviceConnection;
+import com.example.mapsgps.location.device.DeviceDatabase;
+import com.example.mapsgps.location.device.DeviceTracker;
+import com.example.mapsgps.location.device.NewDeviceActivity;
+import com.example.mapsgps.location.user.GpsConnection;
+import com.example.mapsgps.location.user.UserTracker;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.example.mapsgps.databinding.ActivityMapsBinding;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
+import java.util.List;
+
+/**
+ * Main Activity with map for showing locations of user and its devices
+ */
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    private static final int FAST_UPDATE_INTERVAL = 5;
-    private static final int DEFAULT_UPDATE_INTERVAL = 30;
     private static final int PERMISSIONS_FINE_LOCATION = 99;
 
-    private GoogleMap mMap;
     private ActivityMapsBinding binding;
 
-    LocationRequest locationRequest;
-    LocationCallback locationCallBack;
-    FusedLocationProviderClient fusedLocationProviderClient;
+    private FloatingActionButton search_fab, gps_fab, settings_fab;
 
-    boolean requestingLocationUpdates = false;
-    boolean isActiveLocation;
+    UserTracker userTracker;
+    GpsConnection gpsChecker;
 
-    Marker current_marker;
-    LatLng current_position;
+    public static DeviceDatabase deviceDatabase;
+    DeviceConnection deviceConnection;
+
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
+
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        startInit();
 
-        setSupportActionBar(binding.toolbar);
-
-        locationRequest = new LocationRequest();
-        locationRequest.setInterval(1000 * DEFAULT_UPDATE_INTERVAL);
-        locationRequest.setFastestInterval(1000 * FAST_UPDATE_INTERVAL);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-        locationCallBack = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                super.onLocationResult(locationResult);
-                updatePosition(locationResult.getLastLocation());
-                if (!isActiveLocation){
-                    setActive();
-                    updateCamera();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            userTracker = new UserTracker();
+            gpsChecker = new GpsConnection(gps_fab, userTracker, this);
+            deviceDatabase = new DeviceDatabase(userId, this);
+            deviceConnection = new DeviceConnection(search_fab, deviceDatabase, this) {
+                @Override
+                public void successConnect() {
+                    showDevices();
                 }
-            }
-        };
+            };
+            updateGps();
+        }
+    }
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+    /**
+     * Start declaration of screen elements: map, toolbar, FABs
+     */
+    private void startInit() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        binding.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!isEnabledGPS()){
-                    buildAlertMessageNoGps();
-                }
-                if (!requestingLocationUpdates) {
-                    requestingLocationUpdates = true;
-                    startLocationUpdates();
-                }
-                updateCamera();
-                }
-        });
-        updateGps();
-
+        gps_fab = findViewById(R.id.gps_fab);
+        search_fab = findViewById(R.id.search_fab);
+        settings_fab = findViewById(R.id.settings_fab);
+        settings_fab.setOnClickListener(view -> showSettingsMenu());
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (requestingLocationUpdates) {
-            startLocationUpdates();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        stopLocationUpdates();
-    }
-
-    private void startLocationUpdates() {
+    /**
+     * Start request for user location
+     */
+    public void updateGps() {
+        gpsChecker.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallBack, null);
+            gpsChecker.fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    gpsChecker.successUpdate(location);
+                }
+            });
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_FINE_LOCATION);
+            }
         }
-    }
-
-    private void stopLocationUpdates() {
-        fusedLocationProviderClient.removeLocationUpdates(locationCallBack);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        switch (requestCode) {
-            case PERMISSIONS_FINE_LOCATION:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    updateGps();
-                }
-                else {
-                    Toast.makeText(this, "This app requires permission to be granted in order to work properly", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-                break;
-        }
-    }
-
-    private void updateGps() {
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MapsActivity.this);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    updatePosition(location);
-                    current_marker.setVisible(true);
-                    updateCamera();
-                }
-            });
-        }
-        else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_FINE_LOCATION);
+        if (requestCode == PERMISSIONS_FINE_LOCATION) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                updateGps();
+            } else {
+                Toast.makeText(this, "This app requires permission to be granted in order to work properly", Toast.LENGTH_SHORT).show();
+                finish();
             }
         }
-    }
-
-    private void updatePosition(Location location) {
-        if (location != null) {
-            double new_lat = location.getLatitude();
-            double new_lon = location.getLongitude();
-
-            if (current_position.latitude != new_lat | current_position.longitude != new_lon) {
-                current_position = new LatLng(new_lat, new_lon);
-                current_marker.setPosition(current_position);
-            }
-        }
-    }
-
-    private void updateCamera(){
-        float cameraZoom = mMap.getCameraPosition().zoom;
-        if (cameraZoom > 18) {
-            cameraZoom = 18;
-        }
-
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(CameraPosition.fromLatLngZoom(current_position, cameraZoom));
-        mMap.animateCamera(cameraUpdate, 1000, null);
-    }
-
-    private boolean isEnabledGPS(){
-        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
-
-        if (manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
-            return true;
-        }
-        return false;
-    }
-
-    private void buildAlertMessageNoGps() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
-                .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        setInactive();
-                        dialog.cancel();
-                    }
-                });
-        final AlertDialog alert = builder.create();
-        alert.show();
-    }
-
-    private void setActive(){
-        isActiveLocation = true;
-        current_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.active_loc));
-    }
-
-    private void setInactive(){
-        isActiveLocation = false;
-        current_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.inactive_loc));
     }
 
     /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
+     * If user signs out, open registration screen
      */
+    private void signOut() {
+        Intent intent = new Intent(MapsActivity.this, WelcomeActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+    }
+
+    /**
+     * Open screen for adding new device
+     */
+    private void addDevice() {
+        Intent intent = new Intent(MapsActivity.this, NewDeviceActivity.class);
+        startActivity(intent);
+    }
+
+    /**
+     * Find the count of user's devices:
+     * If you haven't any device - show message about it
+     * If you have 1 device - show its location
+     * If you have a few devices - show popup menu, after choice show its location
+     **/
+    private void showDevices() {
+        List<DeviceTracker> devices = deviceDatabase.getDevicesList();
+        if (devices.size() == 0) {
+            Toast.makeText(MapsActivity.this, "You have no connected devices yet", Toast.LENGTH_SHORT).show();
+        } else if (devices.size() == 1) {
+            devices.get(0).show();
+        } else {
+            showDeviceMenu(devices);
+        }
+    }
+
+    /**
+     * Show menu to choose a device
+     * After choice, show this device on the map
+     *
+     * @param devicesList - list of user's devices
+     **/
+    private void showDeviceMenu(List<DeviceTracker> devicesList) {
+        PopupMenu popupMenu = new PopupMenu(MapsActivity.this, search_fab);
+        int orderNumber = 0;
+        for (DeviceTracker device : devicesList) {
+            popupMenu.getMenu().add(Menu.NONE, Menu.NONE, orderNumber, device.getTitle());
+            orderNumber++;
+        }
+        popupMenu.setOnMenuItemClickListener(item -> {
+            devicesList.get(item.getOrder()).show();
+            return false;
+        });
+        popupMenu.show();
+    }
+
+    private void showSettingsMenu() {
+        PopupMenu popup = new PopupMenu(MapsActivity.this, settings_fab);
+        MenuInflater inflater = popup.getMenuInflater();
+        Menu menu = popup.getMenu();
+        inflater.inflate(R.menu.menu_maps, menu);
+        MenuItem signOutItem = menu.getItem(1);
+        SpannableString spannable = new SpannableString("Sign out");
+        spannable.setSpan(new ForegroundColorSpan(Color.RED), 0, spannable.length(), 0);
+        signOutItem.setTitle(spannable);
+
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.add_device:
+                    addDevice();
+                    return true;
+                case R.id.sign_out:
+                    mAuth.signOut();
+                    signOut();
+                    return true;
+                default:
+                    return super.onOptionsItemSelected(item);
+            }
+        });
+        popup.show();
+    }
+
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        if (currentUser != null) {
+            userTracker.addMarker(googleMap);
+            deviceDatabase.setGoogleMap(googleMap);
+            deviceConnection.startConnection();
+        }
 
-        current_position = new LatLng(0,0);
-        current_marker = mMap.addMarker(new MarkerOptions().position(current_position).visible(false).title("You're here"));
-        setInactive();
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(18));
+        Camera.mMap = googleMap;
+        Camera.start();
+    }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (currentUser != null) {
+            gpsChecker.startLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (currentUser != null) {
+            gpsChecker.stopLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (currentUser == null) {
+            signOut();
+        }
     }
 }

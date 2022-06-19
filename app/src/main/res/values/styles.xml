@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+<style name="MainLayoutStyle" parent="Theme.MapsGps">
+    <item name="android:paddingLeft">32dp</item>
+    <item name="android:paddingRight">32dp</item>
+    <item name="android:paddingBottom">24dp</item>
+    <item name="android:paddingTop">50dp</item>
+    <item name="android:clickable">true</item>
+    <item name="android:focusable">true</item>
+    <item name="android:focusableInTouchMode">true</item>
+
+</style>
+
+    <style name="InputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:layout_centerHorizontal">true</item>
+        <item name="boxStrokeColor">@color/text_input_color</item>
+        <item name="boxBackgroundColor">@color/light_gray</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/field_round_corners</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/field_round_corners</item>
+        <item name="boxCornerRadiusTopStart">@dimen/field_round_corners</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/field_round_corners</item>
+    </style>
+
+    <style name="EditTextStyle" parent="Theme.MapsGps">
+        <item name="android:fontFamily">@font/poppins_light</item>
+        <item name="errorEnabled">true</item>
+        <item name="android:textSize">@dimen/field_text_size</item>
+
+    </style>
+
+    <style name="ButtonStyle" parent="Theme.MapsGps">
+        <item name="android:layout_height">@dimen/field_height</item>
+        <item name="android:layout_centerHorizontal">true</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/field_text_size</item>
+        <item name="cornerRadius">@dimen/field_round_corners</item>
+    </style>
+
+    <style name="BlackButtonStyle" parent="ButtonStyle">
+        <item name="android:backgroundTint">@color/black</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="WhiteButtonStyle" parent="ButtonStyle">
+        <item name="android:backgroundTint">@color/white</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="rippleColor">@color/light_blue</item>
+        <item name="strokeColor">@color/black</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+   <style name="GreetingText" parent="Theme.MapsGps">
+       <item name="android:fontFamily">@font/poppins_medium</item>
+       <item name="android:textColor">@color/black</item>
+       <item name="android:textSize">@dimen/greeting_text_size</item>
+   </style>
+
+    <style name="DefaultText" parent="Theme.MapsGps">
+        <item name="android:fontFamily">@font/poppins_light</item>
+        <item name="android:textColor">@color/dark_gray</item>
+    </style>
+
+    <style name="StartActivityText" parent="Theme.MapsGps">
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="android:textSize">@dimen/default_text</item>
+        <item name="android:textColor">@color/blue</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+</resources>
